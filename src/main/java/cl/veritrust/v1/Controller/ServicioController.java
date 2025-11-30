@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/servicios")
-@CrossOrigin(origins = "http://localhost:5173") // <--- ESTO FALTA
 public class ServicioController {
     @Autowired
     private final ServicioService servicioService;

@@ -3,7 +3,7 @@ package cl.veritrust.v1.Controller;
 import org.springframework.web.bind.annotation.RestController;
 import cl.veritrust.v1.Service.UsuarioService;
 import cl.veritrust.v1.Model.Usuario;
-import cl.veritrust.v1.DTO.UsuarioDTO;
+import cl.veritrust.v1.DTO.*;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
