@@ -1,12 +1,8 @@
 package cl.veritrust.v1.Model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.*; // Asegúrate de importar todo esto
 import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
@@ -21,8 +17,16 @@ public class Servicio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "servicio_id")
     private Long id;
+    
     private String nombre;
+    
     private String descripcion;
+    
     private Integer precio;
+
+    // --- AQUI ESTA EL ARREGLO ---
+    @ElementCollection // <--- ESTO ES OBLIGATORIO PARA LISTAS
+    @CollectionTable(name = "servicio_detalles", joinColumns = @JoinColumn(name = "servicio_id"))
+    @Column(name = "detalle")
     private List<String> detalles;
 }

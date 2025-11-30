@@ -1,33 +1,18 @@
 package cl.veritrust.v1.Config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${app.upload.dir}")
-    private String uploadDir;
-
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // mapea /uploads/** a la carpeta física configurada en app.upload.dir
-        String location = uploadDir;
-        if (!location.endsWith("/")) location = location + "/";
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + location);
-    }
-
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-            .allowedOrigins("http://localhost:5173")
-            .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-            .allowedHeaders("*")
-            .allowCredentials(true)
-            .maxAge(3600);
+        registry.addMapping("/**") // Aplica a todas las rutas
+                .allowedOrigins("http://localhost:5173") // IMPORTANTE: Esta es la URL de tu React
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Permite estos métodos
+                .allowedHeaders("*") // Permite todos los headers
+                .allowCredentials(true);
     }
 }
