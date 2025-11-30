@@ -1,6 +1,6 @@
-package main.java.cl.veritrust.v1.Service;
- 
-import com.example.productapi.exception.FileStorageException;
+package cl.veritrust.v1.Service;
+
+import cl.veritrust.v1.Exception.FileStorageException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.Resource;
@@ -61,5 +61,10 @@ public class FileStorageService {
         } catch (IOException ex) {
             return false;
         }
+    }
+
+    // getter para que componentes externos (p.e. FirmarDoc) puedan resolver rutas
+    public Path getUploadDir() {
+        return this.uploadDir;
     }
 }

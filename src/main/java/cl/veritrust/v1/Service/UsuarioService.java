@@ -1,7 +1,7 @@
-package main.java.cl.veritrust.v1.Service;
-import main.java.cl.veritrust.v1.Exception.ResourceNotFoundException;
-import main.java.cl.veritrust.v1.Model.Usuario;
-import main.java.cl.veritrust.v1.Repository.UsuarioRepository;
+package cl.veritrust.v1.Service;
+import cl.veritrust.v1.Exception.ResourceNotFoundException;
+import cl.veritrust.v1.Model.Usuario;
+import cl.veritrust.v1.Repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;

@@ -1,7 +1,10 @@
-package main.java.cl.veritrust.v1.Controller;
+package cl.veritrust.v1.Controller;
 import org.springframework.web.bind.annotation.RestController;
-
-import main.java.cl.veritrust.v1.Service.UsuarioService;
+import cl.veritrust.v1.Service.UsuarioService;
+import cl.veritrust.v1.Model.Usuario;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Map;
 
 
 @RestController

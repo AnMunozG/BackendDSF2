@@ -1,5 +1,4 @@
-//Dame un DTO generico para usuarios con el formato de @Usuario.java
-package main.java.cl.veritrust.v1.DTO;
+package cl.veritrust.v1.DTO;
 
 import jakarta.validation.constraints.*;
 
@@ -21,6 +20,7 @@ public class UsuarioDTO {
     private String email;
 
     @NotBlank(message = "La fecha de nacimiento no puede estar vacía")
+    @Pattern(regexp = "\\d{2}-\\d{2}-\\d{4}", message = "La fecha de nacimiento debe tener el formato DD-MM-YYYY")
     private String fechaNac;
 
     @NotBlank(message = "La contraseña no puede estar vacía")

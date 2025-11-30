@@ -1,6 +1,6 @@
-package main.java.cl.veritrust.v1.Repository;
+package cl.veritrust.v1.Repository;
 
-import main.java.cl.veritrust.v1.Model.Usuario;
+import cl.veritrust.v1.Model.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

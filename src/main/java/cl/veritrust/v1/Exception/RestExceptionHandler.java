@@ -1,4 +1,4 @@
-package main.java.cl.veritrust.v1.Exception;
+package cl.veritrust.v1.Exception;
  
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
