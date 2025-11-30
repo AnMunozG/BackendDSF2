@@ -1,15 +1,18 @@
-package main.java.cl.veritrust.v1.Config;
- 
+package cl.veritrust.v1.Config;
+
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.*;
- 
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
- 
+
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // mapea /uploads/** a la carpeta física configurada en app.upload.dir
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + System.getProperty("user.home") + "/product-api-uploads/");
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**") // Aplica a todas las rutas
+                .allowedOrigins("http://localhost:5173") // IMPORTANTE: Esta es la URL de tu React
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Permite estos métodos
+                .allowedHeaders("*") // Permite todos los headers
+                .allowCredentials(true);
     }
 }

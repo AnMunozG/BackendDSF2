@@ -3,12 +3,12 @@ package cl.veritrust.v1.Controller;
 import cl.veritrust.v1.Model.Servicio;
 import cl.veritrust.v1.Service.ServicioService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequestMapping("/servicios")
+@CrossOrigin(origins = "http://localhost:5173") // <--- ESTO FALTA
 public class ServicioController {
     @Autowired
     private final ServicioService servicioService;

@@ -21,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/documentos")
+@CrossOrigin(origins = "http://localhost:5173") // <--- ESTO FALTA
 public class DocumentoController {
 
     @Autowired
