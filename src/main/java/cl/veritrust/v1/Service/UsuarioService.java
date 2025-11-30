@@ -22,6 +22,9 @@ public class UsuarioService {
     }
 
     public Usuario CrearUsuario(Usuario usuario) {
+        if (usuario.getRol() == null) {
+            usuario.setRol("Usuario");
+        }
         return usuarioRepository.save(usuario);
     }
 
@@ -33,6 +36,9 @@ public class UsuarioService {
         usuario.setEmail(detallesUsuario.getEmail());
         usuario.setFechaNac(detallesUsuario.getFechaNac());
         usuario.setContraseña(detallesUsuario.getContraseña());
+        if (detallesUsuario.getRol() != null) {
+            usuario.setRol(detallesUsuario.getRol());
+        }
         return usuarioRepository.save(usuario);
     }
 
@@ -41,14 +47,9 @@ public class UsuarioService {
         usuarioRepository.delete(usuario);
     }
 
-    public Usuario Login(String email, String contraseña) {
-        List<Usuario> usuarios = usuarioRepository.findAll();
-        for (Usuario usuario : usuarios) {
-            if (usuario.getEmail().equals(email) && usuario.getContraseña().equals(contraseña)) {
-                return usuario;
-            }
-        }
-        throw new ResourceNotFoundException("Credenciales inválidas");
+    public Usuario Login(String rut, String contraseña) {
+        return usuarioRepository.findByRutAndContraseña(rut, contraseña)
+                .orElseThrow(() -> new ResourceNotFoundException("Credenciales inválidas"));
     }
 
 }

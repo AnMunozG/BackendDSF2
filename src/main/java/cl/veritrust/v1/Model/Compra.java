@@ -5,34 +5,22 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Documento {
+public class Compra {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "documento_id")
+    @Column(name = "compra_id")
     private Long id;
-
-    private String nombreOriginal;
-
-    @Column(nullable = false, unique = true)
-    private String nombreAlmacenado;
-
-    private String tipoContenido;
-
-    private Long tamano;
-
-    private LocalDateTime fechaSubida;
-
-    private boolean firmado = false;
-
-    private String nombreFirmado;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "servicio_id")
+    private Servicio servicio;
+    private String fechaCompra;
+    private Integer monto;
 }

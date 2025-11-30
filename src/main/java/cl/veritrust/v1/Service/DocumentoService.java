@@ -1,6 +1,7 @@
 package cl.veritrust.v1.Service;
 import cl.veritrust.v1.Model.Documento;
 import cl.veritrust.v1.Repository.DocumentoRepository;
+import cl.veritrust.v1.Model.Usuario;
 import cl.veritrust.v1.Exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,9 @@ import java.util.List;
 public class DocumentoService {
     @Autowired
     private DocumentoRepository documentoRepository;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     public List<Documento> ObtenerDocumentos() {
         return documentoRepository.findAll();
@@ -21,6 +25,11 @@ public class DocumentoService {
     }
 
     public Documento CrearDocumento(Documento documento) {
+        // Si la entidad llega con solo usuario.id (creada por toEntity), resolver el Usuario
+        if (documento.getUsuario() != null && documento.getUsuario().getId() != null) {
+            Usuario u = usuarioService.ObtenerUsuarioPorId(documento.getUsuario().getId());
+            documento.setUsuario(u);
+        }
         return documentoRepository.save(documento);
     }
 
@@ -32,6 +41,11 @@ public class DocumentoService {
         if (detallesDocumento.getTamano() != null) documento.setTamano(detallesDocumento.getTamano());
         if (detallesDocumento.getNombreFirmado() != null) documento.setNombreFirmado(detallesDocumento.getNombreFirmado());
         documento.setFirmado(detallesDocumento.isFirmado());
+        // permitir actualizar el usuario asociado mediante detallesDocumento.usuario.id
+        if (detallesDocumento.getUsuario() != null && detallesDocumento.getUsuario().getId() != null) {
+            Usuario u = usuarioService.ObtenerUsuarioPorId(detallesDocumento.getUsuario().getId());
+            documento.setUsuario(u);
+        }
         return documentoRepository.save(documento);
     }
 

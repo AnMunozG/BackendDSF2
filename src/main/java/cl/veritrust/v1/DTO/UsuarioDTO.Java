@@ -27,6 +27,9 @@ public class UsuarioDTO {
     @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String contraseña;
 
+    // rol del usuario (opcional en DTO)
+    private String rol;
+
     // Getters y Setters
     public Long getId() {
         return id;
@@ -82,5 +85,13 @@ public class UsuarioDTO {
 
     public void setContraseña(String contraseña) {
         this.contraseña = contraseña;
+    }
+
+    public String getRol() {
+        return rol;
+    }
+
+    public void setRol(String rol) {
+        this.rol = rol;
     }
 }

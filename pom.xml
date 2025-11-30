@@ -72,16 +72,7 @@
 			<version>2.0.29</version>
 		</dependency>
 		<!-- BouncyCastle for PKCS#12 and CMS signing -->
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.70</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk15on</artifactId>
-			<version>1.70</version>
-		</dependency>
+		<!-- BouncyCastle removed: digital signing not used in simplified flow -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
