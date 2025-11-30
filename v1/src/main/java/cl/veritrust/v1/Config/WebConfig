@@ -1,0 +1,15 @@
+package main.java.cl.veritrust.v1.Config;
+ 
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.*;
+ 
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+ 
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // mapea /uploads/** a la carpeta física configurada en app.upload.dir
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + System.getProperty("user.home") + "/product-api-uploads/");
+    }
+}

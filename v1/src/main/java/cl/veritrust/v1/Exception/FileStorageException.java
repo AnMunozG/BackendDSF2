@@ -1,0 +1,6 @@
+package main.java.cl.veritrust.v1.Exception;
+ 
+public class FileStorageException extends RuntimeException {
+    public FileStorageException(String message) { super(message); }
+    public FileStorageException(String message, Throwable cause) { super(message, cause); }
+}
