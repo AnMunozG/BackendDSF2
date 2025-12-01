@@ -20,7 +20,7 @@ public class UsuarioDTO {
     private String email;
 
     @NotBlank(message = "La fecha de nacimiento no puede estar vacía")
-    @Pattern(regexp = "\\d{2}-\\d{2}-\\d{4}", message = "La fecha de nacimiento debe tener el formato DD-MM-YYYY")
+    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "La fecha de nacimiento debe tener el formato YYYY-MM-DD")
     private String fechaNac;
 
     @NotBlank(message = "La contraseña no puede estar vacía")
