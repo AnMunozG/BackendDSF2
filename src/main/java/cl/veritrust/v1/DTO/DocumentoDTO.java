@@ -1,87 +1,59 @@
 package cl.veritrust.v1.DTO;
 
+import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 
 public class DocumentoDTO {
-	private Long id;
-	private String nombreOriginal;
-	private String nombreAlmacenado;
-	private String tipoContenido;
-	private Long tamano;
-	private LocalDateTime fechaSubida;
-	private boolean firmado;
-	private String nombreFirmado;
-	private Long usuarioId;
 
-	public Long getId() {
-		return id;
-	}
+    private Long id;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @NotBlank(message = "El nombre original no puede estar vacío")
+    private String nombreOriginal;
 
-	public String getNombreOriginal() {
-		return nombreOriginal;
-	}
+    @NotBlank(message = "El nombre almacenado no puede estar vacío")
+    private String nombreAlmacenado;
 
-	public void setNombreOriginal(String nombreOriginal) {
-		this.nombreOriginal = nombreOriginal;
-	}
+    @NotBlank(message = "El tipo de contenido no puede estar vacío")
+    private String tipoContenido;
 
-	public String getNombreAlmacenado() {
-		return nombreAlmacenado;
-	}
+    @NotNull(message = "El tamaño no puede ser nulo")
+    @Min(value = 1, message = "El archivo debe tener un tamaño mayor a 0 bytes")
+    private Long tamano;
 
-	public void setNombreAlmacenado(String nombreAlmacenado) {
-		this.nombreAlmacenado = nombreAlmacenado;
-	}
+    @NotNull(message = "La fecha de subida no puede ser nula")
+    private LocalDateTime fechaSubida;
 
-	public String getTipoContenido() {
-		return tipoContenido;
-	}
+    private boolean firmado;
 
-	public void setTipoContenido(String tipoContenido) {
-		this.tipoContenido = tipoContenido;
-	}
+    private String nombreFirmado;
 
-	public Long getTamano() {
-		return tamano;
-	}
+    @NotNull(message = "El ID del usuario no puede ser nulo")
+    private Long usuarioId;
 
-	public void setTamano(Long tamano) {
-		this.tamano = tamano;
-	}
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-	public LocalDateTime getFechaSubida() {
-		return fechaSubida;
-	}
+    public String getNombreOriginal() { return nombreOriginal; }
+    public void setNombreOriginal(String nombreOriginal) { this.nombreOriginal = nombreOriginal; }
 
-	public void setFechaSubida(LocalDateTime fechaSubida) {
-		this.fechaSubida = fechaSubida;
-	}
+    public String getNombreAlmacenado() { return nombreAlmacenado; }
+    public void setNombreAlmacenado(String nombreAlmacenado) { this.nombreAlmacenado = nombreAlmacenado; }
 
-	public boolean isFirmado() {
-		return firmado;
-	}
+    public String getTipoContenido() { return tipoContenido; }
+    public void setTipoContenido(String tipoContenido) { this.tipoContenido = tipoContenido; }
 
-	public void setFirmado(boolean firmado) {
-		this.firmado = firmado;
-	}
+    public Long getTamano() { return tamano; }
+    public void setTamano(Long tamano) { this.tamano = tamano; }
 
-	public String getNombreFirmado() {
-		return nombreFirmado;
-	}
+    public LocalDateTime getFechaSubida() { return fechaSubida; }
+    public void setFechaSubida(LocalDateTime fechaSubida) { this.fechaSubida = fechaSubida; }
 
-	public void setNombreFirmado(String nombreFirmado) {
-		this.nombreFirmado = nombreFirmado;
-	}
+    public boolean isFirmado() { return firmado; }
+    public void setFirmado(boolean firmado) { this.firmado = firmado; }
 
-	public Long getUsuarioId() {
-		return usuarioId;
-	}
+    public String getNombreFirmado() { return nombreFirmado; }
+    public void setNombreFirmado(String nombreFirmado) { this.nombreFirmado = nombreFirmado; }
 
-	public void setUsuarioId(Long usuarioId) {
-		this.usuarioId = usuarioId;
-	}
+    public Long getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
 }
