@@ -1,11 +1,11 @@
 package cl.veritrust.v1.Service;
+
 import cl.veritrust.v1.Exception.ResourceNotFoundException;
 import cl.veritrust.v1.Model.Usuario;
 import cl.veritrust.v1.Repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
-
 
 @Service
 public class UsuarioService {
@@ -47,9 +47,10 @@ public class UsuarioService {
         usuarioRepository.delete(usuario);
     }
 
+    // --- CAMBIO AQUÍ ---
     public Usuario Login(String rut, String contraseña) {
+        // Usamos orElse(null) para no romper el flujo si no existe
         return usuarioRepository.findByRutAndContraseña(rut, contraseña)
-                .orElseThrow(() -> new ResourceNotFoundException("Credenciales inválidas"));
+                .orElse(null);
     }
-
 }

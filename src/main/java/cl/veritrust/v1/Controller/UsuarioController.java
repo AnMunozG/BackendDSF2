@@ -1,9 +1,10 @@
 package cl.veritrust.v1.Controller;
 
+import org.springframework.http.ResponseEntity; // <--- IMPORTANTE
 import org.springframework.web.bind.annotation.RestController;
 import cl.veritrust.v1.Service.UsuarioService;
 import cl.veritrust.v1.Model.Usuario;
-import cl.veritrust.v1.DTO.*;
+import cl.veritrust.v1.DTO.UsuarioDTO;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -51,10 +52,19 @@ public class UsuarioController {
         usuarioService.EliminarUsuario(id);
     }
 
+    // --- CAMBIO CLAVE AQUÍ ---
     @PostMapping("/login")
-    public UsuarioDTO Login(@Valid @RequestBody UsuarioDTO usuarioDTO) {
+    // Usamos ResponseEntity<?> para poder responder errores o éxito
+    public ResponseEntity<?> Login(@RequestBody UsuarioDTO usuarioDTO) {
         Usuario u = usuarioService.Login(usuarioDTO.getRut(), usuarioDTO.getContraseña());
-        return toDTO(u);
+        
+        if (u != null) {
+            // Login correcto: Devolvemos 200 y el usuario
+            return ResponseEntity.ok(toDTO(u));
+        } else {
+            // Login fallido: Devolvemos 401 Unauthorized
+            return ResponseEntity.status(401).body("{\"mensaje\": \"Credenciales incorrectas\"}");
+        }
     }
     
     private UsuarioDTO toDTO(Usuario u) {
