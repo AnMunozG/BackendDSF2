@@ -14,6 +14,9 @@ public class ServicioDTO {
     @NotBlank(message = "La descripción no puede estar vacía")
     @Size(min = 10, max = 255, message = "La descripción debe tener entre 10 y 255 caracteres")
     private String descripcion;
+    
+    // CAMPO DEL EDITOR (TEXTO ENRIQUECIDO)
+    private String descripcionCompleta;
 
     @NotNull(message = "El precio no puede ser nulo")
     @Min(value = 0, message = "El precio no puede ser negativo")
@@ -27,12 +30,18 @@ public class ServicioDTO {
         String
     > detalles;
 
+    // Getters y Setters (Necesarios para que Spring mapee el JSON)
+    
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    
+    public String getDescripcionCompleta() { return descripcionCompleta; }
+    public void setDescripcionCompleta(String descripcionCompleta) { this.descripcionCompleta = descripcionCompleta; }
+    
     public Integer getPrecio() { return precio; }
     public void setPrecio(Integer precio) { this.precio = precio; }
     public List<String> getDetalles() { return detalles; }

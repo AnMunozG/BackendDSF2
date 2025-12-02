@@ -23,11 +23,23 @@ public class ServicioService {
         return servicioRepository.save(servicio);
     }
 
+    // --- LÓGICA DE ACTUALIZACIÓN (PUT) CORREGIDA ---
     public Servicio ActualizarServicio(Long id, Servicio detallesServicio) {
         Servicio servicio = ObtenerServicioPorId(id);
+        
+        // Copia de los campos básicos
         servicio.setNombre(detallesServicio.getNombre());
         servicio.setDescripcion(detallesServicio.getDescripcion());
         servicio.setPrecio(detallesServicio.getPrecio());
+        
+        // 🚨 COPIAR LOS CAMPOS NUEVOS/LARGOS 🚨
+        servicio.setDescripcionCompleta(detallesServicio.getDescripcionCompleta()); 
+
+        // Copiar la lista de detalles (ARRAY)
+        if (detallesServicio.getDetalles() != null) {
+             servicio.setDetalles(detallesServicio.getDetalles());
+        }
+
         return servicioRepository.save(servicio);
     }
 
