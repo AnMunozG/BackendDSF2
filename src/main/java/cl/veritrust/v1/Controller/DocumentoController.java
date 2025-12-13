@@ -21,6 +21,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map; // Agregado para devolver mensajes JSON en errores
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -29,13 +30,11 @@ public class DocumentoController {
 
     @Autowired
     private DocumentoService documentoService;
-
     @Autowired
     private FileStorageService fileStorageService;
 
     @Autowired
     private UsuarioService usuarioService;
-
     @Autowired
     private FirmarDoc firmarDoc;
 
@@ -86,9 +85,19 @@ public class DocumentoController {
         return ResponseEntity.ok(toDTO(actualizado));
     }
 
+    // MEJORA #3: Cambiamos el retorno a ResponseEntity<?> para poder enviar errores de texto si falla la validación
     @PostMapping("/{id}/firmar")
-    public ResponseEntity<DocumentoDTO> firmarDocumento(@PathVariable Long id) {
+    public ResponseEntity<?> firmarDocumento(@PathVariable Long id) {
         Documento doc = documentoService.ObtenerDocumentoPorId(id);
+        
+        // --- INICIO MEJORA #3: PREVENIR REFIRMA ---
+        if (doc.isFirmado()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("mensaje", "El documento ya ha sido firmado previamente."));
+        }
+        // --- FIN MEJORA #3 ---
+
         // delegar a componente de firma (actualmente marca visual con firmante fijo)
         Documento actualizado = firmarDoc.signDocumento(doc);
         return ResponseEntity.ok(toDTO(actualizado));
@@ -115,7 +124,17 @@ public class DocumentoController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDocumento(@PathVariable Long id) {
         Documento doc = documentoService.ObtenerDocumentoPorId(id);
+        
+        // Borrar el archivo original (ya existía)
         fileStorageService.deleteFile(doc.getNombreAlmacenado());
+
+        // --- INICIO MEJORA #1: EVITAR ARCHIVOS HUÉRFANOS ---
+        // Verificar si existe un archivo firmado asociado y borrarlo también
+        if (doc.getNombreFirmado() != null) {
+            fileStorageService.deleteFile(doc.getNombreFirmado());
+        }
+        // --- FIN MEJORA #1 ---
+
         documentoService.EliminarDocumento(id);
         return ResponseEntity.noContent().build();
     }
