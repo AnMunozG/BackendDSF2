@@ -1,17 +1,18 @@
 package cl.veritrust.v1.Controller;
 
-import org.springframework.http.ResponseEntity; 
-import org.springframework.web.bind.annotation.RestController;
-import cl.veritrust.v1.Service.UsuarioService;
-import cl.veritrust.v1.Model.Usuario;
 import cl.veritrust.v1.DTO.UsuarioDTO;
+import cl.veritrust.v1.Model.Usuario;
 import cl.veritrust.v1.Security.JwtUtil;
+import cl.veritrust.v1.Service.UsuarioService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/usuarios")
 public class UsuarioController {
-    
+
     @Autowired
     private UsuarioService usuarioService;
 
@@ -30,69 +31,81 @@ public class UsuarioController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    public UsuarioController() { }
+    // ---------------- CRUD ----------------
 
     @GetMapping
-    public List<UsuarioDTO> GetAllUsuarios() {
-        return usuarioService.ObtenerUsuarios().stream()
+    public List<UsuarioDTO> getAllUsuarios() {
+        return usuarioService.ObtenerUsuarios()
+                .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public UsuarioDTO GetUsuarioById(@PathVariable Long id) {
+    public UsuarioDTO getUsuarioById(@PathVariable Long id) {
         return toDTO(usuarioService.ObtenerUsuarioPorId(id));
     }
 
     @PostMapping
-    public UsuarioDTO CreateUsuario(@Valid @RequestBody UsuarioDTO usuarioDTO) {
-        Usuario usuario = toEntity(usuarioDTO);
-        Usuario creado = usuarioService.CrearUsuario(usuario);
+    public UsuarioDTO createUsuario(@Valid @RequestBody UsuarioDTO dto) {
+        Usuario creado = usuarioService.CrearUsuario(toEntity(dto));
         return toDTO(creado);
     }
 
     @PutMapping("/{id}")
-    public UsuarioDTO UpdateUsuario(@PathVariable Long id, @Valid @RequestBody UsuarioDTO usuarioDTO) {
-        Usuario detalles = toEntity(usuarioDTO);
-        Usuario actualizado = usuarioService.ActualizarUsuario(id, detalles);
+    public UsuarioDTO updateUsuario(@PathVariable Long id,
+                                    @Valid @RequestBody UsuarioDTO dto) {
+        Usuario actualizado =
+                usuarioService.ActualizarUsuario(id, toEntity(dto));
         return toDTO(actualizado);
     }
 
     @DeleteMapping("/{id}")
-    public void DeleteUsuario(@PathVariable Long id) {
+    public void deleteUsuario(@PathVariable Long id) {
         usuarioService.EliminarUsuario(id);
     }
 
-    // --- NUEVO LOGIN SEGURO CON JWT ---
+    // ---------------- LOGIN JWT ----------------
+
     @PostMapping("/login")
-    public ResponseEntity<?> Login(@RequestBody UsuarioDTO usuarioDTO) {
+    public ResponseEntity<?> login(@RequestBody UsuarioDTO dto) {
         try {
-            // 1. Spring Security verifica las credenciales (RUT y password encriptada)
-            Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(usuarioDTO.getRut(), usuarioDTO.getContraseña())
+            // 1️⃣ Autenticación REAL (usa PasswordEncoder internamente)
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            dto.getRut(),
+                            dto.getContraseña()
+                    )
             );
 
-            // 2. Si pasa, buscamos los datos completos del usuario
-            Usuario u = usuarioService.ObtenerUsuarioPorRut(usuarioDTO.getRut());
+            // 2️⃣ Si pasa, obtenemos el usuario
+            Usuario usuario =
+                    usuarioService.ObtenerUsuarioPorRut(dto.getRut());
 
-            // 3. Generamos el token JWT
-            String token = jwtUtil.generateToken(u.getRut(), u.getRol());
-
-            // 4. Devolvemos Token + Datos del usuario al frontend
-            Map<String, Object> response = Map.of(
-                "token", token,
-                "usuario", toDTO(u)
+            // 3️⃣ Generamos JWT
+            String token = jwtUtil.generateToken(
+                    usuario.getRut(),
+                    usuario.getRol()
             );
-            
-            return ResponseEntity.ok(response);
+
+            // 4️⃣ Respuesta al frontend
+            return ResponseEntity.ok(
+                    Map.of(
+                            "token", token,
+                            "usuario", toDTO(usuario)
+                    )
+            );
 
         } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("mensaje", "Credenciales incorrectas"));
+            return ResponseEntity
+                    .status(401)
+                    .body(Map.of("mensaje", "Credenciales incorrectas"));
         }
     }
-    
+
+    // ---------------- MAPPERS ----------------
+
     private UsuarioDTO toDTO(Usuario u) {
-        if (u == null) return null;
         UsuarioDTO dto = new UsuarioDTO();
         dto.setId(u.getId());
         dto.setRut(u.getRut());
@@ -100,13 +113,11 @@ public class UsuarioController {
         dto.setTelefono(u.getTelefono());
         dto.setEmail(u.getEmail());
         dto.setFechaNac(u.getFechaNac());
-        // No devolvemos contraseña
         dto.setRol(u.getRol());
         return dto;
     }
 
     private Usuario toEntity(UsuarioDTO dto) {
-        if (dto == null) return null;
         Usuario u = new Usuario();
         u.setId(dto.getId());
         u.setRut(dto.getRut());
