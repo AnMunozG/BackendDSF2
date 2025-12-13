@@ -1,13 +1,19 @@
 package cl.veritrust.v1.Controller;
 
-import org.springframework.http.ResponseEntity; // <--- IMPORTANTE
+import org.springframework.http.ResponseEntity; 
 import org.springframework.web.bind.annotation.RestController;
 import cl.veritrust.v1.Service.UsuarioService;
 import cl.veritrust.v1.Model.Usuario;
 import cl.veritrust.v1.DTO.UsuarioDTO;
+import cl.veritrust.v1.Security.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -15,11 +21,16 @@ import java.util.stream.Collectors;
 @RequestMapping("/usuarios")
 public class UsuarioController {
     
-    private final UsuarioService usuarioService;
+    @Autowired
+    private UsuarioService usuarioService;
 
-    public UsuarioController(UsuarioService usuarioService) {
-        this.usuarioService = usuarioService;
-    }
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    public UsuarioController() { }
 
     @GetMapping
     public List<UsuarioDTO> GetAllUsuarios() {
@@ -52,18 +63,31 @@ public class UsuarioController {
         usuarioService.EliminarUsuario(id);
     }
 
-    // --- CAMBIO CLAVE AQUÍ ---
+    // --- NUEVO LOGIN SEGURO CON JWT ---
     @PostMapping("/login")
-    // Usamos ResponseEntity<?> para poder responder errores o éxito
     public ResponseEntity<?> Login(@RequestBody UsuarioDTO usuarioDTO) {
-        Usuario u = usuarioService.Login(usuarioDTO.getRut(), usuarioDTO.getContraseña());
-        
-        if (u != null) {
-            // Login correcto: Devolvemos 200 y el usuario
-            return ResponseEntity.ok(toDTO(u));
-        } else {
-            // Login fallido: Devolvemos 401 Unauthorized
-            return ResponseEntity.status(401).body("{\"mensaje\": \"Credenciales incorrectas\"}");
+        try {
+            // 1. Spring Security verifica las credenciales (RUT y password encriptada)
+            Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(usuarioDTO.getRut(), usuarioDTO.getContraseña())
+            );
+
+            // 2. Si pasa, buscamos los datos completos del usuario
+            Usuario u = usuarioService.ObtenerUsuarioPorRut(usuarioDTO.getRut());
+
+            // 3. Generamos el token JWT
+            String token = jwtUtil.generateToken(u.getRut(), u.getRol());
+
+            // 4. Devolvemos Token + Datos del usuario al frontend
+            Map<String, Object> response = Map.of(
+                "token", token,
+                "usuario", toDTO(u)
+            );
+            
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("mensaje", "Credenciales incorrectas"));
         }
     }
     
@@ -76,7 +100,7 @@ public class UsuarioController {
         dto.setTelefono(u.getTelefono());
         dto.setEmail(u.getEmail());
         dto.setFechaNac(u.getFechaNac());
-        dto.setContraseña(u.getContraseña());
+        // No devolvemos contraseña
         dto.setRol(u.getRol());
         return dto;
     }
