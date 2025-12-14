@@ -1,0 +1,17 @@
+{
+  "properties": [
+    {
+      "name": "app.upload.dir",
+      "type": "java.lang.String",
+      "description": "Directorio donde se almacenan los archivos subidos",
+      "defaultValue": "${user.home}/Downloads/uploads"
+    },
+    {
+      "name": "app.libreoffice.path",
+      "type": "java.lang.String",
+      "description": "Ruta al ejecutable de LibreOffice (soffice) para conversión de documentos",
+      "defaultValue": "soffice"
+    }
+  ]
+}
+
