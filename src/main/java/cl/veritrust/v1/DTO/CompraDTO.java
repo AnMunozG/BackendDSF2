@@ -16,10 +16,10 @@ public class CompraDTO {
     private Long servicioId;
 
     // La fecha es opcional - si no se proporciona, el servicio asignará la fecha actual
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", shape = JsonFormat.Shape.STRING)
     private LocalDateTime fechaCompra;
 
-    @NotNull(message = "El monto no puede ser nulo")
+    // El monto es opcional - si no se proporciona, se calculará desde el precio del servicio
     @Min(value = 0, message = "El monto no puede ser negativo")
     private Integer monto;
 
@@ -27,6 +27,7 @@ public class CompraDTO {
     public void setId(Long id) { this.id = id; }
     public Long getUsuarioId() { return usuarioId; }
     public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
+    
     public Long getServicioId() { return servicioId; }
     public void setServicioId(Long servicioId) { this.servicioId = servicioId; }
     public LocalDateTime getFechaCompra() { return fechaCompra; }
