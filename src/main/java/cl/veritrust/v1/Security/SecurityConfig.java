@@ -25,7 +25,10 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
+            .cors(cors -> {}) // Habilitar CORS usando el CorsFilter de WebConfig
             .authorizeHttpRequests(auth -> auth
+                // Permitir peticiones OPTIONS (preflight) para CORS
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/usuarios/login", "/usuarios").permitAll()
                 .requestMatchers(HttpMethod.GET, "/servicios/**").permitAll()
                 .anyRequest().authenticated()

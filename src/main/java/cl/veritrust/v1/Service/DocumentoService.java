@@ -5,9 +5,11 @@ import cl.veritrust.v1.Model.Usuario;
 import cl.veritrust.v1.Exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@Transactional
 public class DocumentoService {
     @Autowired
     private DocumentoRepository documentoRepository;
@@ -15,10 +17,12 @@ public class DocumentoService {
     @Autowired
     private UsuarioService usuarioService;
 
+    @Transactional(readOnly = true)
     public List<Documento> ObtenerDocumentos() {
         return documentoRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Documento ObtenerDocumentoPorId(Long id) {
         return documentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Documento no encontrado con id: " + id));
@@ -49,8 +53,9 @@ public class DocumentoService {
         return documentoRepository.save(documento);
     }
 
+    @Transactional(readOnly = true)
     public List<Documento> ObtenerDocumentosPorUsuario(Long usuarioId) {
-        return documentoRepository.findByUsuarioId(usuarioId);
+        return documentoRepository.findByUsuario_Id(usuarioId);
     }
 
     public void EliminarDocumento(Long id) {

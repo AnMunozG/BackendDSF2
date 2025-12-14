@@ -24,15 +24,25 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(true);
     }
 
-    // NUEVO: Configuración específica para que Spring Security no bloquee al Frontend
+    // Configuración específica para que Spring Security no bloquee al Frontend
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.setAllowedOrigins(List.of("http://localhost:5173")); // Tu puerto de React
-        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList(
+            "Origin", 
+            "Content-Type", 
+            "Accept", 
+            "Authorization",
+            "X-Requested-With",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
+        ));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        config.setMaxAge(3600L); // Cache preflight por 1 hora
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }

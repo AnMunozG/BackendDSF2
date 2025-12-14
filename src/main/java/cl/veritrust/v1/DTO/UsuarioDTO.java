@@ -1,6 +1,9 @@
 package cl.veritrust.v1.DTO;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
+
+import java.time.LocalDate;
 
 public class UsuarioDTO {
 
@@ -19,9 +22,9 @@ public class UsuarioDTO {
     @NotBlank(message = "El email no puede estar vacío")
     private String email;
 
-    @NotBlank(message = "La fecha de nacimiento no puede estar vacía")
-    @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "La fecha de nacimiento debe tener el formato YYYY-MM-DD")
-    private String fechaNac;
+    @NotNull(message = "La fecha de nacimiento no puede estar vacía")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate fechaNac;
 
     @NotBlank(message = "La contraseña no puede estar vacía")
     @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
@@ -71,11 +74,11 @@ public class UsuarioDTO {
         this.email = email;
     }
 
-    public String getFechaNac() {
+    public LocalDate getFechaNac() {
         return fechaNac;
     }
 
-    public void setFechaNac(String fechaNac) {
+    public void setFechaNac(LocalDate fechaNac) {
         this.fechaNac = fechaNac;
     }
 

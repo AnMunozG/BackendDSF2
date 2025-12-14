@@ -10,11 +10,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 
 @Service
+@Transactional
 public class UsuarioService implements UserDetailsService {
 
     @Autowired
@@ -23,20 +25,21 @@ public class UsuarioService implements UserDetailsService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Transactional(readOnly = true)
     public List<Usuario> ObtenerUsuarios() {
         return usuarioRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Usuario ObtenerUsuarioPorId(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + id));
     }
 
     // Método auxiliar para buscar por RUT
+    @Transactional(readOnly = true)
     public Usuario ObtenerUsuarioPorRut(String rut) {
-        return usuarioRepository.findAll().stream()
-                .filter(u -> u.getRut().equals(rut))
-                .findFirst()
+        return usuarioRepository.findByRut(rut)
                 .orElse(null);
     }
 

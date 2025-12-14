@@ -7,10 +7,13 @@ import cl.veritrust.v1.Model.Usuario;
 import cl.veritrust.v1.Repository.CompraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Transactional
 public class CompraService {
 
 	@Autowired
@@ -22,30 +25,49 @@ public class CompraService {
 	@Autowired
 	private ServicioService servicioService;
 
+	@Transactional(readOnly = true)
 	public List<Compra> ObtenerCompras() {
 		return compraRepository.findAll();
 	}
 
+	@Transactional(readOnly = true)
 	public Compra ObtenerCompraPorId(Long id) {
 		return compraRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Compra no encontrada con id: " + id));
 	}
 
 	public Compra CrearCompra(Compra compra) {
+		// Validar que el monto sea positivo
+		if (compra.getMonto() == null || compra.getMonto() < 0) {
+			throw new IllegalArgumentException("El monto debe ser un valor positivo");
+		}
+		
 		// Resolver relaciones si se pasan solo los ids en las referencias
 		if (compra.getUsuario() != null && compra.getUsuario().getId() != null) {
 			Usuario usuario = usuarioService.ObtenerUsuarioPorId(compra.getUsuario().getId());
 			compra.setUsuario(usuario);
+		} else {
+			throw new IllegalArgumentException("El usuario es requerido");
 		}
+		
 		if (compra.getServicio() != null && compra.getServicio().getId() != null) {
 			Servicio servicio = servicioService.ObtenerServicioPorId(compra.getServicio().getId());
 			compra.setServicio(servicio);
+		} else {
+			throw new IllegalArgumentException("El servicio es requerido");
 		}
+		
+		// Si no tiene fecha, asignar la fecha actual
+		if (compra.getFechaCompra() == null) {
+			compra.setFechaCompra(LocalDateTime.now());
+		}
+		
 		return compraRepository.save(compra);
 	}
 
 	public Compra ActualizarCompra(Long id, Compra detallesCompra) {
 		Compra compra = ObtenerCompraPorId(id);
+		
 		if (detallesCompra.getUsuario() != null && detallesCompra.getUsuario().getId() != null) {
 			Usuario usuario = usuarioService.ObtenerUsuarioPorId(detallesCompra.getUsuario().getId());
 			compra.setUsuario(usuario);
@@ -54,8 +76,15 @@ public class CompraService {
 			Servicio servicio = servicioService.ObtenerServicioPorId(detallesCompra.getServicio().getId());
 			compra.setServicio(servicio);
 		}
-		if (detallesCompra.getFechaCompra() != null) compra.setFechaCompra(detallesCompra.getFechaCompra());
-		if (detallesCompra.getMonto() != null) compra.setMonto(detallesCompra.getMonto());
+		if (detallesCompra.getFechaCompra() != null) {
+			compra.setFechaCompra(detallesCompra.getFechaCompra());
+		}
+		if (detallesCompra.getMonto() != null) {
+			if (detallesCompra.getMonto() < 0) {
+				throw new IllegalArgumentException("El monto no puede ser negativo");
+			}
+			compra.setMonto(detallesCompra.getMonto());
+		}
 		return compraRepository.save(compra);
 	}
 

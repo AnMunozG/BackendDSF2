@@ -3,7 +3,6 @@ package cl.veritrust.v1.Controller;
 import cl.veritrust.v1.Model.Servicio;
 import cl.veritrust.v1.Service.ServicioService;
 import cl.veritrust.v1.DTO.ServicioDTO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,7 +11,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/servicios")
 public class ServicioController {
-    @Autowired
     private final ServicioService servicioService;
 
     public ServicioController(ServicioService servicioService) {

@@ -3,17 +3,21 @@ import cl.veritrust.v1.Model.Servicio;
 import cl.veritrust.v1.Repository.ServicioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@Transactional
 public class ServicioService {
     @Autowired
     private ServicioRepository servicioRepository;
 
+    @Transactional(readOnly = true)
     public List<Servicio> ObtenerServicios() {
         return servicioRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Servicio ObtenerServicioPorId(Long id) {
         return servicioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Servicio no encontrado con id: " + id));
