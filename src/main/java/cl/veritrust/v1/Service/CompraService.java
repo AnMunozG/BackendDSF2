@@ -36,6 +36,25 @@ public class CompraService {
 				.orElseThrow(() -> new ResourceNotFoundException("Compra no encontrada con id: " + id));
 	}
 
+	@Transactional(readOnly = true)
+	public List<Compra> ObtenerComprasPorUsuario(Long usuarioId) {
+		List<Compra> compras = compraRepository.findComprasPorUsuarioConServicio(usuarioId);
+		// Forzar la inicialización de las relaciones dentro de la transacción
+		// Esto evita problemas de lazy loading fuera de la transacción
+		for (Compra compra : compras) {
+			if (compra.getServicio() != null) {
+				// Acceder a los campos para forzar la carga
+				compra.getServicio().getId();
+				compra.getServicio().getNombre();
+				compra.getServicio().getPrecio();
+			}
+			if (compra.getUsuario() != null) {
+				compra.getUsuario().getId();
+			}
+		}
+		return compras;
+	}
+
 	public Compra CrearCompra(Compra compra) {
 		// Validar que el monto sea positivo
 		if (compra.getMonto() == null || compra.getMonto() < 0) {

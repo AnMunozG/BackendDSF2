@@ -4,14 +4,17 @@ import cl.veritrust.v1.DTO.CompraDTO;
 import cl.veritrust.v1.Model.Compra;
 import cl.veritrust.v1.Model.Servicio;
 import cl.veritrust.v1.Model.Usuario;
+import cl.veritrust.v1.Security.SecurityUtil;
 import cl.veritrust.v1.Service.CompraService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -23,6 +26,9 @@ public class CompraController {
 
 	@Autowired
 	private CompraService compraService;
+	
+	@Autowired
+	private SecurityUtil securityUtil;
 
 	@GetMapping
 	public List<CompraDTO> getAll() {
@@ -33,6 +39,43 @@ public class CompraController {
 	public ResponseEntity<CompraDTO> getById(@PathVariable Long id) {
 		Compra c = compraService.ObtenerCompraPorId(id);
 		return ResponseEntity.ok(toDTO(c));
+	}
+
+	@GetMapping("/usuario/{usuarioId}")
+	public ResponseEntity<?> getComprasPorUsuario(@PathVariable Long usuarioId) {
+		try {
+			// Validar que el usuario esté autenticado
+			Usuario usuarioAutenticado = securityUtil.getUsuarioAutenticado();
+			
+			// Validar que el usuarioId en la URL coincida con el del token
+			if (!usuarioAutenticado.getId().equals(usuarioId)) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+					.body(Map.of("error", "No tienes permiso para acceder a las compras de otro usuario"));
+			}
+			
+			// Obtener compras del usuario con información del servicio
+			// El JOIN FETCH carga las relaciones dentro de la transacción
+			List<Compra> compras = compraService.ObtenerComprasPorUsuario(usuarioId);
+			
+			// Convertir a DTO con información del servicio
+			// Acceder a las relaciones mientras están cargadas
+			List<Map<String, Object>> comprasDTO = compras.stream()
+				.map(this::toDTOConServicio)
+				.collect(Collectors.toList());
+			
+			return ResponseEntity.ok(comprasDTO);
+			
+		} catch (RuntimeException e) {
+			System.err.println("Error de autenticación en getComprasPorUsuario: " + e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(Map.of("error", "Usuario no autenticado: " + e.getMessage()));
+		} catch (Exception e) {
+			System.err.println("Error al obtener compras: " + e.getMessage());
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body(Map.of("error", "Error al obtener compras: " + e.getMessage()));
+		}
 	}
 
 	@PostMapping
@@ -179,6 +222,48 @@ public class CompraController {
 		dto.setFechaCompra(c.getFechaCompra());
 		dto.setMonto(c.getMonto());
 		return dto;
+	}
+	
+	// Mapeo con información del servicio para el endpoint de usuario
+	private Map<String, Object> toDTOConServicio(Compra c) {
+		if (c == null) return null;
+		
+		try {
+			Map<String, Object> compraMap = new HashMap<>();
+			compraMap.put("id", c.getId());
+			
+			// Acceder a usuario de forma segura
+			Usuario usuario = c.getUsuario();
+			compraMap.put("usuarioId", usuario != null ? usuario.getId() : null);
+			
+			// Acceder a servicio de forma segura (debe estar cargado por JOIN FETCH)
+			Servicio servicio = c.getServicio();
+			compraMap.put("servicioId", servicio != null ? servicio.getId() : null);
+			
+			// Formatear fecha como LocalDate (solo fecha, sin hora)
+			if (c.getFechaCompra() != null) {
+				compraMap.put("fechaCompra", c.getFechaCompra().toLocalDate().toString());
+			} else {
+				compraMap.put("fechaCompra", null);
+			}
+			
+			compraMap.put("monto", c.getMonto());
+			
+			// Información del servicio
+			Map<String, Object> servicioMap = new HashMap<>();
+			if (servicio != null) {
+				servicioMap.put("id", servicio.getId());
+				servicioMap.put("nombre", servicio.getNombre() != null ? servicio.getNombre() : "");
+				servicioMap.put("precio", servicio.getPrecio());
+			}
+			compraMap.put("servicio", servicioMap);
+			
+			return compraMap;
+		} catch (Exception e) {
+			System.err.println("Error al convertir compra a DTO: " + e.getMessage());
+			e.printStackTrace();
+			throw new RuntimeException("Error al procesar compra: " + e.getMessage(), e);
+		}
 	}
 
 	private Compra toEntity(CompraDTO dto) {

@@ -57,17 +57,21 @@ public class DataInitializer implements CommandLineRunner {
         admin.setFechaNac(LocalDate.of(1990, 1, 15));
         admin.setContraseña(passwordEncoder.encode("admin123"));
         admin.setRol("admin");
+        admin.setRegion("Región Metropolitana");
+        admin.setComuna("Santiago");
         usuarioRepository.save(admin);
 
         // Usuario Cliente 1
         Usuario cliente1 = new Usuario();
-        cliente1.setRut("11111111-1");
+        cliente1.setRut("125732143");
         cliente1.setNombre("Juan Pérez");
         cliente1.setTelefono("+56987654321");
         cliente1.setEmail("juan.perez@email.com");
         cliente1.setFechaNac(LocalDate.of(1985, 5, 20));
-        cliente1.setContraseña(passwordEncoder.encode("cliente123"));
+        cliente1.setContraseña(passwordEncoder.encode("dilan123"));
         cliente1.setRol("user");
+        cliente1.setRegion("Región de Valparaíso");
+        cliente1.setComuna("Valparaíso");
         usuarioRepository.save(cliente1);
 
         // Usuario Cliente 2
@@ -79,6 +83,8 @@ public class DataInitializer implements CommandLineRunner {
         cliente2.setFechaNac(LocalDate.of(1992, 8, 10));
         cliente2.setContraseña(passwordEncoder.encode("cliente123"));
         cliente2.setRol("user");
+        cliente2.setRegion("Región Metropolitana");
+        cliente2.setComuna("Las Condes");
         usuarioRepository.save(cliente2);
 
         // Usuario Cliente 3
@@ -90,6 +96,8 @@ public class DataInitializer implements CommandLineRunner {
         cliente3.setFechaNac(LocalDate.of(1988, 12, 3));
         cliente3.setContraseña(passwordEncoder.encode("cliente123"));
         cliente3.setRol("user");
+        cliente3.setRegion("Región del Biobío");
+        cliente3.setComuna("Concepción");
         usuarioRepository.save(cliente3);
 
         System.out.println("✅ Usuarios de prueba insertados correctamente");

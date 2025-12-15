@@ -35,6 +35,10 @@ public class Usuario {
     
     private String telefono;
     
+    private String region;
+    
+    private String comuna;
+    
     @Email
     @NotBlank
     @Column(unique = true, nullable = false)
