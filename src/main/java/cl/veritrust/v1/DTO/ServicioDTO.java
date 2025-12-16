@@ -15,7 +15,6 @@ public class ServicioDTO {
     @Size(min = 10, max = 255, message = "La descripción debe tener entre 10 y 255 caracteres")
     private String descripcion;
     
-    // CAMPO DEL EDITOR (TEXTO ENRIQUECIDO)
     private String descripcionCompleta;
 
     @NotNull(message = "El precio no puede ser nulo")
@@ -30,8 +29,6 @@ public class ServicioDTO {
         String
     > detalles;
 
-    // Getters y Setters (Necesarios para que Spring mapee el JSON)
-    
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNombre() { return nombre; }

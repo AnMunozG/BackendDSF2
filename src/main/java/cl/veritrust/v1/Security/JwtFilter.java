@@ -34,7 +34,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
         
-        // Permitir peticiones a Swagger sin procesar JWT
         if (path.startsWith("/swagger-ui") || 
             path.startsWith("/v3/api-docs") || 
             path.equals("/swagger-ui.html")) {
@@ -42,7 +41,6 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Permitir peticiones OPTIONS (preflight) sin procesar JWT
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;

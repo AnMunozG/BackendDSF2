@@ -14,11 +14,6 @@ public class SecurityUtil {
     @Autowired
     private UsuarioService usuarioService;
     
-    /**
-     * Obtiene el usuario autenticado desde el contexto de seguridad
-     * @return Usuario autenticado
-     * @throws RuntimeException si no hay usuario autenticado
-     */
     public Usuario getUsuarioAutenticado() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         
@@ -45,10 +40,6 @@ public class SecurityUtil {
         return usuario;
     }
     
-    /**
-     * Obtiene el RUT del usuario autenticado
-     * @return RUT del usuario
-     */
     public String getRutUsuarioAutenticado() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         

@@ -25,11 +25,9 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> {}) // Habilitar CORS usando el CorsFilter de WebConfig
+            .cors(cors -> {})
             .authorizeHttpRequests(auth -> auth
-                // Permitir peticiones OPTIONS (preflight) para CORS
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                // Permitir acceso a Swagger/OpenAPI (debe ir ANTES de otras reglas)
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/index.html").permitAll()
                 .requestMatchers(HttpMethod.POST, "/usuarios/login", "/usuarios").permitAll()
                 .requestMatchers(HttpMethod.GET, "/servicios/**").permitAll()

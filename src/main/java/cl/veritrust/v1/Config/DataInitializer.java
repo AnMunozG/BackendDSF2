@@ -48,7 +48,6 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void insertarUsuarios() {
-        // Usuario Administrador
         Usuario admin = new Usuario();
         admin.setRut("218007244");
         admin.setNombre("Administrador Sistema");
@@ -61,7 +60,6 @@ public class DataInitializer implements CommandLineRunner {
         admin.setComuna("Santiago");
         usuarioRepository.save(admin);
 
-        // Usuario Cliente 1
         Usuario cliente1 = new Usuario();
         cliente1.setRut("125732143");
         cliente1.setNombre("Juan Pérez");
@@ -74,7 +72,6 @@ public class DataInitializer implements CommandLineRunner {
         cliente1.setComuna("Valparaíso");
         usuarioRepository.save(cliente1);
 
-        // Usuario Cliente 2
         Usuario cliente2 = new Usuario();
         cliente2.setRut("22222222-2");
         cliente2.setNombre("María González");
@@ -87,7 +84,6 @@ public class DataInitializer implements CommandLineRunner {
         cliente2.setComuna("Las Condes");
         usuarioRepository.save(cliente2);
 
-        // Usuario Cliente 3
         Usuario cliente3 = new Usuario();
         cliente3.setRut("33333333-3");
         cliente3.setNombre("Carlos Rodríguez");
@@ -104,7 +100,6 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void insertarServicios() {
-        // Servicio 1: Firma Digital Simple
         Servicio servicio1 = new Servicio();
         servicio1.setNombre("Firma Digital Simple");
         servicio1.setDescripcion("Firma digital básica para documentos personales");
@@ -118,7 +113,6 @@ public class DataInitializer implements CommandLineRunner {
         ));
         servicioRepository.save(servicio1);
 
-        // Servicio 2: Firma Digital Avanzada
         Servicio servicio2 = new Servicio();
         servicio2.setNombre("Firma Digital Avanzada");
         servicio2.setDescripcion("Firma digital avanzada con múltiples firmantes y validación");
@@ -133,7 +127,6 @@ public class DataInitializer implements CommandLineRunner {
         ));
         servicioRepository.save(servicio2);
 
-        // Servicio 3: Certificación de Documentos
         Servicio servicio3 = new Servicio();
         servicio3.setNombre("Certificación de Documentos");
         servicio3.setDescripcion("Certificación y validación de documentos oficiales");
@@ -148,7 +141,6 @@ public class DataInitializer implements CommandLineRunner {
         ));
         servicioRepository.save(servicio3);
 
-        // Servicio 4: Firma Masiva
         Servicio servicio4 = new Servicio();
         servicio4.setNombre("Firma Masiva de Documentos");
         servicio4.setDescripcion("Servicio para firmar múltiples documentos de forma eficiente");
@@ -163,7 +155,6 @@ public class DataInitializer implements CommandLineRunner {
         ));
         servicioRepository.save(servicio4);
 
-        // Servicio 5: Consultoría Legal Digital
         Servicio servicio5 = new Servicio();
         servicio5.setNombre("Consultoría Legal Digital");
         servicio5.setDescripcion("Asesoría legal especializada en documentos digitales");
@@ -189,34 +180,30 @@ public class DataInitializer implements CommandLineRunner {
             return;
         }
 
-        // Compra 1: Cliente 1 compra Firma Digital Simple
         Compra compra1 = new Compra();
-        compra1.setUsuario(usuarios.get(1)); // Cliente 1
-        compra1.setServicio(servicios.get(0)); // Firma Digital Simple
+        compra1.setUsuario(usuarios.get(1));
+        compra1.setServicio(servicios.get(0));
         compra1.setFechaCompra(LocalDateTime.now().minusDays(10));
         compra1.setMonto(servicios.get(0).getPrecio());
         compraRepository.save(compra1);
 
-        // Compra 2: Cliente 1 compra Certificación de Documentos
         Compra compra2 = new Compra();
-        compra2.setUsuario(usuarios.get(1)); // Cliente 1
-        compra2.setServicio(servicios.get(2)); // Certificación de Documentos
+        compra2.setUsuario(usuarios.get(1));
+        compra2.setServicio(servicios.get(2));
         compra2.setFechaCompra(LocalDateTime.now().minusDays(5));
         compra2.setMonto(servicios.get(2).getPrecio());
         compraRepository.save(compra2);
 
-        // Compra 3: Cliente 2 compra Firma Digital Avanzada
         Compra compra3 = new Compra();
-        compra3.setUsuario(usuarios.get(2)); // Cliente 2
-        compra3.setServicio(servicios.get(1)); // Firma Digital Avanzada
+        compra3.setUsuario(usuarios.get(2));
+        compra3.setServicio(servicios.get(1));
         compra3.setFechaCompra(LocalDateTime.now().minusDays(3));
         compra3.setMonto(servicios.get(1).getPrecio());
         compraRepository.save(compra3);
 
-        // Compra 4: Cliente 3 compra Consultoría Legal Digital
         Compra compra4 = new Compra();
-        compra4.setUsuario(usuarios.get(3)); // Cliente 3
-        compra4.setServicio(servicios.get(4)); // Consultoría Legal Digital
+        compra4.setUsuario(usuarios.get(3));
+        compra4.setServicio(servicios.get(4));
         compra4.setFechaCompra(LocalDateTime.now().minusDays(1));
         compra4.setMonto(servicios.get(4).getPrecio());
         compraRepository.save(compra4);

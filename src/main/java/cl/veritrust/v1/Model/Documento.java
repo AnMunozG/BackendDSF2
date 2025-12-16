@@ -36,7 +36,6 @@ public class Documento {
 
     private String nombreFirmado;
 
-    // Campos adicionales para documentos firmados desde el frontend
     @Column(name = "hash_documento", length = 64)
     private String hashDocumento;
 

@@ -15,11 +15,9 @@ public class CompraDTO {
     @NotNull(message = "El ID del servicio no puede ser nulo")
     private Long servicioId;
 
-    // La fecha es opcional - si no se proporciona, el servicio asignará la fecha actual
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", shape = JsonFormat.Shape.STRING)
     private LocalDateTime fechaCompra;
 
-    // El monto es opcional - si no se proporciona, se calculará desde el precio del servicio
     @Min(value = 0, message = "El monto no puede ser negativo")
     private Integer monto;
 

@@ -30,10 +30,8 @@ public class UsuarioDTO {
     @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String contraseña;
 
-    // rol del usuario (opcional en DTO)
     private String rol;
 
-    // Getters y Setters
     public Long getId() {
         return id;
     }

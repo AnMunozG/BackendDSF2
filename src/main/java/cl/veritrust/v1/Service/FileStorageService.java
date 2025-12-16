@@ -33,7 +33,6 @@ public class FileStorageService {
             if (originalName.contains("..")) {
                 throw new FileStorageException("Nombre de archivo inválido: " + originalName);
             }
-            // prevenir colisiones: prefijo UUID
             String fileName = UUID.randomUUID().toString() + "_" + originalName;
             Path targetLocation = this.uploadDir.resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
@@ -43,13 +42,6 @@ public class FileStorageService {
         }
     }
     
-    /**
-     * Guarda un archivo en una subcarpeta específica del usuario
-     * @param file Archivo a guardar
-     * @param usuarioId ID del usuario para crear subcarpeta
-     * @param hash Hash SHA-256 del documento (se usará un hash corto para el nombre)
-     * @return Ruta relativa del archivo guardado (desde uploadDir)
-     */
     public String storeFileForUser(MultipartFile file, Long usuarioId, String hash) {
         String originalName = StringUtils.cleanPath(file.getOriginalFilename());
         try {
@@ -61,7 +53,6 @@ public class FileStorageService {
             Path userDir = this.uploadDir.resolve("documentos").resolve(usuarioId.toString());
             Files.createDirectories(userDir);
             
-            // Generar nombre de archivo con timestamp, usuarioId y hash corto (primeros 8 caracteres)
             long timestamp = System.currentTimeMillis();
             String hashCorto = (hash != null && hash.length() >= 8) ? hash.substring(0, 8).toUpperCase() : "UNKNOWN";
             String fileName = "DOCUMENTO_FIRMADO_" + timestamp + "_" + usuarioId + "_" + hashCorto + ".pdf";
@@ -69,18 +60,12 @@ public class FileStorageService {
             Path targetLocation = userDir.resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             
-            // Retornar ruta relativa desde uploadDir
             return "documentos/" + usuarioId + "/" + fileName;
         } catch (IOException ex) {
             throw new FileStorageException("No se pudo guardar el archivo " + originalName, ex);
         }
     }
     
-    /**
-     * Carga un archivo desde una ruta relativa
-     * @param relativePath Ruta relativa desde uploadDir (ej: "documentos/123/archivo.pdf")
-     * @return Resource del archivo
-     */
     public Resource loadFileByRelativePath(String relativePath) {
         try {
             Path filePath = this.uploadDir.resolve(relativePath).normalize();
@@ -112,11 +97,6 @@ public class FileStorageService {
         }
     }
     
-    /**
-     * Elimina un archivo usando su ruta relativa
-     * @param relativePath Ruta relativa desde uploadDir
-     * @return true si se eliminó correctamente
-     */
     public boolean deleteFileByRelativePath(String relativePath) {
         try {
             Path filePath = this.uploadDir.resolve(relativePath).normalize();
@@ -126,7 +106,6 @@ public class FileStorageService {
         }
     }
 
-    // getter para que componentes externos (p.e. FirmarDoc) puedan resolver rutas
     public Path getUploadDir() {
         return this.uploadDir;
     }

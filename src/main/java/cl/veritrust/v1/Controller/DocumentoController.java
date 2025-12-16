@@ -53,7 +53,7 @@ public class DocumentoController {
     @Autowired
     private SecurityUtil securityUtil;
     
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     @Operation(
         summary = "Subir documento",
@@ -91,7 +91,6 @@ public class DocumentoController {
             Usuario usuario = usuarioService.ObtenerUsuarioPorId(userId);
             doc.setUsuario(usuario);
         } catch (Exception ex) {
-            // si no existe usuario, limpiar archivo y devolver error
             fileStorageService.deleteFile(nombreAlmacenado);
             return ResponseEntity.badRequest().build();
         }
@@ -159,15 +158,12 @@ public class DocumentoController {
             @PathVariable Long id) {
         Documento doc = documentoService.ObtenerDocumentoPorId(id);
         
-        // --- INICIO MEJORA #3: PREVENIR REFIRMA ---
         if (doc.isFirmado()) {
             return ResponseEntity
                     .badRequest()
                     .body(Map.of("mensaje", "El documento ya ha sido firmado previamente."));
         }
-        // --- FIN MEJORA #3 ---
 
-        // delegar a componente de firma (actualmente marca visual con firmante fijo)
         Documento actualizado = firmarDoc.signDocumento(doc);
         return ResponseEntity.ok(toDTO(actualizado));
     }
@@ -229,19 +225,14 @@ public class DocumentoController {
             @PathVariable Long id) {
         Documento doc = documentoService.ObtenerDocumentoPorId(id);
         
-        // Borrar el archivo original (ya existía)
         fileStorageService.deleteFile(doc.getNombreAlmacenado());
 
-        // --- INICIO MEJORA #1: EVITAR ARCHIVOS HUÉRFANOS ---
-        // Verificar si existe un archivo firmado asociado y borrarlo también
         if (doc.getNombreFirmado() != null) {
             fileStorageService.deleteFile(doc.getNombreFirmado());
         }
-        // Si tiene ruta de almacenamiento (documento firmado desde frontend), eliminarlo
         if (doc.getRutaAlmacenamiento() != null) {
             fileStorageService.deleteFileByRelativePath(doc.getRutaAlmacenamiento());
         }
-        // --- FIN MEJORA #1 ---
 
         documentoService.EliminarDocumento(id);
         return ResponseEntity.noContent().build();
@@ -274,42 +265,34 @@ public class DocumentoController {
         String rutaAlmacenamiento = null;
         
         try {
-            // Validar autenticación
             Usuario usuarioAutenticado = securityUtil.getUsuarioAutenticado();
-            System.out.println("Usuario autenticado: " + usuarioAutenticado.getId() + " - " + usuarioAutenticado.getRut());
             
-            // Validar archivo
             if (archivo == null || archivo.isEmpty()) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("error", "El archivo es requerido"));
             }
             
-            // Validar tipo de archivo (solo PDF)
             String contentType = archivo.getContentType();
             if (contentType == null || !contentType.equals("application/pdf")) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("error", "Solo se permiten archivos PDF"));
             }
             
-            // Validar tamaño máximo (10MB)
             if (archivo.getSize() > MAX_FILE_SIZE) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("error", "El archivo excede el tamaño máximo de 10MB"));
             }
             
-            // Validar hash
             if (hash == null || hash.trim().isEmpty() || hash.length() != 64) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("error", "El hash SHA-256 es requerido y debe tener 64 caracteres"));
             }
             
-            // Validar nombre original
             if (nombreOriginal == null || nombreOriginal.trim().isEmpty()) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("error", "El nombre original del archivo es requerido"));
             }
             
-            // Parsear fecha de firma
             LocalDateTime fechaFirma;
             try {
                 fechaFirma = LocalDateTime.parse(fechaFirmaStr, DateTimeFormatter.ISO_DATE_TIME);
@@ -318,26 +301,16 @@ public class DocumentoController {
                     .body(Map.of("error", "Formato de fecha inválido. Use formato ISO 8601 (yyyy-MM-dd'T'HH:mm:ss)"));
             }
             
-            // Sanitizar nombre original
             String nombreOriginalSanitizado = sanitizeFileName(nombreOriginal);
             
-            // Normalizar tipoArchivo (si viene vacío o null, usar "pdf")
             if (tipoArchivo == null || tipoArchivo.trim().isEmpty()) {
                 tipoArchivo = "pdf";
             }
             
-            System.out.println("Guardando archivo para usuario: " + usuarioAutenticado.getId());
-            System.out.println("Hash recibido: " + hash);
-            System.out.println("Tamaño archivo: " + archivo.getSize() + " bytes");
-            
-            // Guardar archivo en subcarpeta del usuario (con hash corto en el nombre)
             rutaAlmacenamiento = fileStorageService.storeFileForUser(archivo, usuarioAutenticado.getId(), hash);
-            System.out.println("Archivo guardado en: " + rutaAlmacenamiento);
             
-            // Extraer nombre de archivo de la ruta
             String nombreArchivo = rutaAlmacenamiento.substring(rutaAlmacenamiento.lastIndexOf("/") + 1);
             
-            // Crear entidad Documento
             Documento documento = new Documento();
             documento.setUsuario(usuarioAutenticado);
             documento.setNombreAlmacenado(nombreArchivo);
@@ -349,12 +322,8 @@ public class DocumentoController {
             documento.setRutaAlmacenamiento(rutaAlmacenamiento);
             documento.setFechaSubida(LocalDateTime.now());
             
-            // Guardar en base de datos
-            System.out.println("Guardando en base de datos...");
             Documento guardado = documentoService.CrearDocumentoFirmado(documento);
-            System.out.println("Documento guardado con ID: " + guardado.getId());
             
-            // Preparar respuesta
             Map<String, Object> respuesta = new HashMap<>();
             respuesta.put("id", guardado.getId());
             respuesta.put("mensaje", "Documento guardado exitosamente");
@@ -364,31 +333,23 @@ public class DocumentoController {
             return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
             
         } catch (RuntimeException e) {
-            // Si falló después de guardar el archivo, intentar eliminarlo
             if (rutaAlmacenamiento != null) {
                 try {
                     fileStorageService.deleteFileByRelativePath(rutaAlmacenamiento);
-                    System.out.println("Archivo eliminado después de error: " + rutaAlmacenamiento);
                 } catch (Exception ex) {
                     System.err.println("Error al eliminar archivo después de error: " + ex.getMessage());
                 }
             }
-            System.err.println("Error de autenticación: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", "Usuario no autenticado: " + e.getMessage()));
         } catch (Exception e) {
-            // Si falló después de guardar el archivo, intentar eliminarlo
             if (rutaAlmacenamiento != null) {
                 try {
                     fileStorageService.deleteFileByRelativePath(rutaAlmacenamiento);
-                    System.err.println("Archivo eliminado después de error: " + rutaAlmacenamiento);
                 } catch (Exception ex) {
                     System.err.println("Error al eliminar archivo después de error: " + ex.getMessage());
                 }
             }
-            System.err.println("Error al guardar documento: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Error al guardar documento: " + e.getMessage()));
         }
@@ -410,19 +371,15 @@ public class DocumentoController {
             @Parameter(description = "ID del usuario", required = true)
             @PathVariable Long usuarioId) {
         try {
-            // Validar autenticación
             Usuario usuarioAutenticado = securityUtil.getUsuarioAutenticado();
             
-            // Validar que el usuarioId en la URL coincida con el del token
             if (!usuarioAutenticado.getId().equals(usuarioId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "No tienes permiso para acceder a los documentos de otro usuario"));
             }
             
-            // Obtener documentos del usuario
             List<Documento> documentos = documentoService.ObtenerDocumentosFirmadosPorUsuario(usuarioId);
             
-            // Convertir a DTO
             List<Map<String, Object>> documentosDTO = documentos.stream()
                 .map(this::toDTOFirmado)
                 .collect(Collectors.toList());
@@ -455,19 +412,15 @@ public class DocumentoController {
             @Parameter(description = "ID del documento firmado a descargar", required = true)
             @PathVariable Long documentoId) {
         try {
-            // Validar autenticación
             Usuario usuarioAutenticado = securityUtil.getUsuarioAutenticado();
             
-            // Obtener documento
             Documento documento = documentoService.ObtenerDocumentoPorId(documentoId);
             
-            // Validar que el documento pertenezca al usuario autenticado
             if (!documento.getUsuario().getId().equals(usuarioAutenticado.getId())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "No tienes permiso para descargar este documento"));
             }
             
-            // Cargar archivo
             Resource resource;
             if (documento.getRutaAlmacenamiento() != null) {
                 resource = fileStorageService.loadFileByRelativePath(documento.getRutaAlmacenamiento());
@@ -475,7 +428,6 @@ public class DocumentoController {
                 resource = fileStorageService.loadFileAsResource(documento.getNombreAlmacenado());
             }
             
-            // Codificar nombre del archivo para el header
             String nombreArchivoCodificado = URLEncoder.encode(
                 documento.getNombreOriginal(), 
                 StandardCharsets.UTF_8
@@ -488,27 +440,20 @@ public class DocumentoController {
                 .body(resource);
             
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Error al descargar documento: " + e.getMessage()));
         }
     }
 
-    /**
-     * Sanitiza el nombre de archivo para evitar problemas de seguridad
-     */
     private String sanitizeFileName(String fileName) {
         if (fileName == null) return "documento.pdf";
         
-        // Remover caracteres peligrosos
         String sanitized = fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
         
-        // Limitar longitud
         if (sanitized.length() > 255) {
             sanitized = sanitized.substring(0, 255);
         }
         
-        // Si está vacío después de sanitizar, usar nombre por defecto
         if (sanitized.trim().isEmpty()) {
             sanitized = "documento.pdf";
         }

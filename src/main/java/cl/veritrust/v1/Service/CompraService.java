@@ -39,11 +39,8 @@ public class CompraService {
 	@Transactional(readOnly = true)
 	public List<Compra> ObtenerComprasPorUsuario(Long usuarioId) {
 		List<Compra> compras = compraRepository.findComprasPorUsuarioConServicio(usuarioId);
-		// Forzar la inicialización de las relaciones dentro de la transacción
-		// Esto evita problemas de lazy loading fuera de la transacción
 		for (Compra compra : compras) {
 			if (compra.getServicio() != null) {
-				// Acceder a los campos para forzar la carga
 				compra.getServicio().getId();
 				compra.getServicio().getNombre();
 				compra.getServicio().getPrecio();
@@ -56,12 +53,10 @@ public class CompraService {
 	}
 
 	public Compra CrearCompra(Compra compra) {
-		// Validar que el monto sea positivo
 		if (compra.getMonto() == null || compra.getMonto() < 0) {
 			throw new IllegalArgumentException("El monto debe ser un valor positivo");
 		}
 		
-		// Resolver relaciones si se pasan solo los ids en las referencias
 		if (compra.getUsuario() != null && compra.getUsuario().getId() != null) {
 			Usuario usuario = usuarioService.ObtenerUsuarioPorId(compra.getUsuario().getId());
 			compra.setUsuario(usuario);
@@ -76,7 +71,6 @@ public class CompraService {
 			throw new IllegalArgumentException("El servicio es requerido");
 		}
 		
-		// Si no tiene fecha, asignar la fecha actual
 		if (compra.getFechaCompra() == null) {
 			compra.setFechaCompra(LocalDateTime.now());
 		}

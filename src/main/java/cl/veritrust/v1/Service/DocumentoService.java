@@ -29,7 +29,6 @@ public class DocumentoService {
     }
 
     public Documento CrearDocumento(Documento documento) {
-        // Si la entidad llega con solo usuario.id (creada por toEntity), resolver el Usuario
         if (documento.getUsuario() != null && documento.getUsuario().getId() != null) {
             Usuario u = usuarioService.ObtenerUsuarioPorId(documento.getUsuario().getId());
             documento.setUsuario(u);
@@ -39,17 +38,14 @@ public class DocumentoService {
 
     public Documento ActualizarDocumento(Long id, Documento detallesDocumento) {
         Documento documento = ObtenerDocumentoPorId(id);
-        // actualizar campos permitidos
         if (detallesDocumento.getNombreOriginal() != null) documento.setNombreOriginal(detallesDocumento.getNombreOriginal());
         if (detallesDocumento.getTipoContenido() != null) documento.setTipoContenido(detallesDocumento.getTipoContenido());
         if (detallesDocumento.getTamano() != null) documento.setTamano(detallesDocumento.getTamano());
         if (detallesDocumento.getNombreFirmado() != null) documento.setNombreFirmado(detallesDocumento.getNombreFirmado());
         documento.setFirmado(detallesDocumento.isFirmado());
-        // Actualizar campos de documento firmado si están presentes
         if (detallesDocumento.getHashDocumento() != null) documento.setHashDocumento(detallesDocumento.getHashDocumento());
         if (detallesDocumento.getFechaFirma() != null) documento.setFechaFirma(detallesDocumento.getFechaFirma());
         if (detallesDocumento.getRutaAlmacenamiento() != null) documento.setRutaAlmacenamiento(detallesDocumento.getRutaAlmacenamiento());
-        // permitir actualizar el usuario asociado mediante detallesDocumento.usuario.id
         if (detallesDocumento.getUsuario() != null && detallesDocumento.getUsuario().getId() != null) {
             Usuario u = usuarioService.ObtenerUsuarioPorId(detallesDocumento.getUsuario().getId());
             documento.setUsuario(u);
@@ -59,7 +55,6 @@ public class DocumentoService {
 
     @Transactional(rollbackFor = Exception.class)
     public Documento CrearDocumentoFirmado(Documento documento) {
-        // Validar que todos los campos requeridos estén presentes
         if (documento.getUsuario() == null || documento.getUsuario().getId() == null) {
             throw new IllegalArgumentException("El usuario es requerido");
         }
@@ -79,14 +74,12 @@ public class DocumentoService {
             throw new IllegalArgumentException("La ruta de almacenamiento es requerida");
         }
         
-        // Resolver la relación con Usuario si solo viene el ID
         if (documento.getUsuario().getId() != null) {
             Usuario usuario = usuarioService.ObtenerUsuarioPorId(documento.getUsuario().getId());
             documento.setUsuario(usuario);
         }
         
         documento.setFirmado(true);
-        System.out.println("Guardando documento firmado en BD: " + documento.getNombreAlmacenado());
         return documentoRepository.save(documento);
     }
 

@@ -36,7 +36,6 @@ public class UsuarioService implements UserDetailsService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + id));
     }
 
-    // Método auxiliar para buscar por RUT
     @Transactional(readOnly = true)
     public Usuario ObtenerUsuarioPorRut(String rut) {
         return usuarioRepository.findByRut(rut)
@@ -47,7 +46,6 @@ public class UsuarioService implements UserDetailsService {
         if (usuario.getRol() == null) {
             usuario.setRol("user");
         }
-        // Encriptamos la contraseña antes de guardar
         usuario.setContraseña(passwordEncoder.encode(usuario.getContraseña()));
         return usuarioRepository.save(usuario);
     }
@@ -60,7 +58,6 @@ public class UsuarioService implements UserDetailsService {
         usuario.setEmail(detallesUsuario.getEmail());
         usuario.setFechaNac(detallesUsuario.getFechaNac());
         
-        // Solo encriptamos si la contraseña ha cambiado y no viene vacía
         if (detallesUsuario.getContraseña() != null && !detallesUsuario.getContraseña().isEmpty()) {
             usuario.setContraseña(passwordEncoder.encode(detallesUsuario.getContraseña()));
         }
@@ -76,14 +73,12 @@ public class UsuarioService implements UserDetailsService {
         usuarioRepository.delete(usuario);
     }
 
-    // Este método es usado internamente por Spring Security para el Login
     @Override
     public UserDetails loadUserByUsername(String rut) throws UsernameNotFoundException {
         Usuario u = ObtenerUsuarioPorRut(rut);
         if (u == null) {
             throw new UsernameNotFoundException("Usuario no encontrado con RUT: " + rut);
         }
-        // Mapeamos tu Usuario a un usuario de Spring Security
         return new org.springframework.security.core.userdetails.User(
                 u.getRut(), 
                 u.getContraseña(), 
@@ -91,7 +86,6 @@ public class UsuarioService implements UserDetailsService {
         );
     }
 
-    // Método antiguo de Login (mantenido por si acaso, pero el controller usará el nuevo)
     public Usuario Login(String rut, String contraseña) {
         return null; 
     }

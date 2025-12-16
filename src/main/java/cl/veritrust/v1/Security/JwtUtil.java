@@ -13,7 +13,7 @@ public class JwtUtil {
 
     private static final String SECRET = "VeriTrustClaveSecretaParaFirmarTokensMuySegura2025";
     private static final Key SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
-    private static final long EXPIRATION_TIME = 86400000; // 24 horas
+    private static final long EXPIRATION_TIME = 86400000;
 
     public String generateToken(String username, String rol) {
         Map<String, Object> claims = new HashMap<>();

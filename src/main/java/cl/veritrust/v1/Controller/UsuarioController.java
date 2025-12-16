@@ -39,8 +39,6 @@ public class UsuarioController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // ---------------- CRUD ----------------
-
     @Operation(
         summary = "Obtener todos los usuarios",
         description = "Retorna una lista con todos los usuarios registrados en el sistema"
@@ -130,8 +128,6 @@ public class UsuarioController {
         usuarioService.EliminarUsuario(id);
     }
 
-    // ---------------- LOGIN JWT ----------------
-
     @Operation(
         summary = "Iniciar sesión",
         description = "Autentica un usuario y retorna un token JWT. Este endpoint es público y no requiere autenticación."
@@ -145,7 +141,6 @@ public class UsuarioController {
             @Parameter(description = "Credenciales de acceso (RUT y contraseña)", required = true)
             @RequestBody UsuarioDTO dto) {
         try {
-            // 1️⃣ Autenticación REAL (usa PasswordEncoder internamente)
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             dto.getRut(),
@@ -153,17 +148,13 @@ public class UsuarioController {
                     )
             );
 
-            // 2️⃣ Si pasa, obtenemos el usuario
-            Usuario usuario =
-                    usuarioService.ObtenerUsuarioPorRut(dto.getRut());
+            Usuario usuario = usuarioService.ObtenerUsuarioPorRut(dto.getRut());
 
-            // 3️⃣ Generamos JWT
             String token = jwtUtil.generateToken(
                     usuario.getRut(),
                     usuario.getRol()
             );
 
-            // 4️⃣ Respuesta al frontend
             return ResponseEntity.ok(
                     Map.of(
                             "token", token,
@@ -177,8 +168,6 @@ public class UsuarioController {
                     .body(Map.of("mensaje", "Credenciales incorrectas"));
         }
     }
-
-    // ---------------- MAPPERS ----------------
 
     private UsuarioDTO toDTO(Usuario u) {
         UsuarioDTO dto = new UsuarioDTO();

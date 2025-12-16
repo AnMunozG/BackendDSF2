@@ -85,21 +85,15 @@ public class CompraController {
 			@Parameter(description = "ID del usuario", required = true)
 			@PathVariable Long usuarioId) {
 		try {
-			// Validar que el usuario esté autenticado
 			Usuario usuarioAutenticado = securityUtil.getUsuarioAutenticado();
 			
-			// Validar que el usuarioId en la URL coincida con el del token
 			if (!usuarioAutenticado.getId().equals(usuarioId)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN)
 					.body(Map.of("error", "No tienes permiso para acceder a las compras de otro usuario"));
 			}
 			
-			// Obtener compras del usuario con información del servicio
-			// El JOIN FETCH carga las relaciones dentro de la transacción
 			List<Compra> compras = compraService.ObtenerComprasPorUsuario(usuarioId);
 			
-			// Convertir a DTO con información del servicio
-			// Acceder a las relaciones mientras están cargadas
 			List<Map<String, Object>> comprasDTO = compras.stream()
 				.map(this::toDTOConServicio)
 				.collect(Collectors.toList());
@@ -107,13 +101,9 @@ public class CompraController {
 			return ResponseEntity.ok(comprasDTO);
 			
 		} catch (RuntimeException e) {
-			System.err.println("Error de autenticación en getComprasPorUsuario: " + e.getMessage());
-			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 				.body(Map.of("error", "Usuario no autenticado: " + e.getMessage()));
 		} catch (Exception e) {
-			System.err.println("Error al obtener compras: " + e.getMessage());
-			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 				.body(Map.of("error", "Error al obtener compras: " + e.getMessage()));
 		}
@@ -135,16 +125,13 @@ public class CompraController {
 			@Parameter(description = "Datos de la compra (usuarioId, servicioId, monto opcional, fechaCompra opcional)", required = true)
 			@RequestBody Map<String, Object> rawData) {
 		try {
-			// Validar que el cuerpo no esté vacío
 			if (rawData == null || rawData.isEmpty()) {
 				return ResponseEntity.badRequest()
 					.body(Map.of("error", "El cuerpo de la petición no puede estar vacío"));
 			}
 			
-			// Crear DTO y convertir los datos de forma flexible
 			CompraDTO dto = new CompraDTO();
 			
-			// Convertir usuarioId (acepta string o número)
 			Object usuarioIdObj = rawData.get("usuarioId");
 			if (usuarioIdObj == null) {
 				return ResponseEntity.badRequest()
@@ -152,7 +139,6 @@ public class CompraController {
 			}
 			dto.setUsuarioId(convertToLong(usuarioIdObj));
 			
-			// Convertir servicioId (acepta string o número)
 			Object servicioIdObj = rawData.get("servicioId");
 			if (servicioIdObj == null) {
 				return ResponseEntity.badRequest()
@@ -160,7 +146,6 @@ public class CompraController {
 			}
 			dto.setServicioId(convertToLong(servicioIdObj));
 			
-			// Convertir monto (opcional, acepta string o número)
 			Object montoObj = rawData.get("monto");
 			if (montoObj != null) {
 				Integer monto = convertToInteger(montoObj);
@@ -171,7 +156,6 @@ public class CompraController {
 				dto.setMonto(monto);
 			}
 			
-			// Convertir fecha (opcional, acepta múltiples formatos)
 			Object fechaObj = rawData.get("fechaCompra");
 			if (fechaObj != null) {
 				LocalDateTime fecha = parseFlexibleDate(fechaObj.toString());
@@ -186,7 +170,6 @@ public class CompraController {
 			return ResponseEntity.badRequest()
 				.body(Map.of("error", e.getMessage()));
 		} catch (Exception e) {
-			e.printStackTrace();
 			return ResponseEntity.status(500)
 				.body(Map.of(
 					"error", "Error al crear la compra: " + e.getMessage(),
@@ -196,7 +179,6 @@ public class CompraController {
 		}
 	}
 	
-	// Métodos auxiliares para conversión flexible
 	private Long convertToLong(Object value) {
 		if (value == null) return null;
 		if (value instanceof Long) return (Long) value;
@@ -225,7 +207,6 @@ public class CompraController {
 		return null;
 	}
 	
-	// Método para parsear fechas en múltiples formatos
 	private LocalDateTime parseFlexibleDate(String dateStr) {
 		if (dateStr == null || dateStr.trim().isEmpty()) return null;
 		
@@ -247,10 +228,9 @@ public class CompraController {
 				}
 				return LocalDateTime.parse(dateStr, formatter);
 			} catch (Exception e) {
-				// Continuar con el siguiente formato
 			}
 		}
-		return null; // Si no se puede parsear, retornar null y el servicio asignará la fecha actual
+		return null;
 	}
 
 	@Operation(
@@ -293,7 +273,6 @@ public class CompraController {
 		return ResponseEntity.noContent().build();
 	}
 
-	// Mapeos simples
 	private CompraDTO toDTO(Compra c) {
 		if (c == null) return null;
 		CompraDTO dto = new CompraDTO();
@@ -305,7 +284,6 @@ public class CompraController {
 		return dto;
 	}
 	
-	// Mapeo con información del servicio para el endpoint de usuario
 	private Map<String, Object> toDTOConServicio(Compra c) {
 		if (c == null) return null;
 		
@@ -313,15 +291,12 @@ public class CompraController {
 			Map<String, Object> compraMap = new HashMap<>();
 			compraMap.put("id", c.getId());
 			
-			// Acceder a usuario de forma segura
 			Usuario usuario = c.getUsuario();
 			compraMap.put("usuarioId", usuario != null ? usuario.getId() : null);
 			
-			// Acceder a servicio de forma segura (debe estar cargado por JOIN FETCH)
 			Servicio servicio = c.getServicio();
 			compraMap.put("servicioId", servicio != null ? servicio.getId() : null);
 			
-			// Formatear fecha como LocalDate (solo fecha, sin hora)
 			if (c.getFechaCompra() != null) {
 				compraMap.put("fechaCompra", c.getFechaCompra().toLocalDate().toString());
 			} else {
@@ -330,7 +305,6 @@ public class CompraController {
 			
 			compraMap.put("monto", c.getMonto());
 			
-			// Información del servicio
 			Map<String, Object> servicioMap = new HashMap<>();
 			if (servicio != null) {
 				servicioMap.put("id", servicio.getId());
@@ -341,8 +315,6 @@ public class CompraController {
 			
 			return compraMap;
 		} catch (Exception e) {
-			System.err.println("Error al convertir compra a DTO: " + e.getMessage());
-			e.printStackTrace();
 			throw new RuntimeException("Error al procesar compra: " + e.getMessage(), e);
 		}
 	}

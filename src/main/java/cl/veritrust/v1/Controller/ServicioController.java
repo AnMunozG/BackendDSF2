@@ -111,7 +111,6 @@ public class ServicioController {
         servicioService.EliminarServicio(id);
     }
     
-    // --- MAPEO DE ENTIDAD A DTO ---
     private ServicioDTO toDTO(Servicio s) {
         if (s == null) return null;
         ServicioDTO dto = new ServicioDTO();
@@ -120,12 +119,10 @@ public class ServicioController {
         dto.setDescripcion(s.getDescripcion());
         dto.setPrecio(s.getPrecio());
         dto.setDetalles(s.getDetalles());
-        // 🚨 CORRECCIÓN 1: Aseguramos que el DTO también lea la descripción completa del Entity
         dto.setDescripcionCompleta(s.getDescripcionCompleta()); 
         return dto;
     }
 
-    // --- MAPEO DE DTO A ENTIDAD (CRÍTICO PARA GUARDAR) ---
     private Servicio toEntity(ServicioDTO dto) {
         if (dto == null) return null;
         Servicio s = new Servicio();
@@ -134,7 +131,6 @@ public class ServicioController {
         s.setDescripcion(dto.getDescripcion());
         s.setPrecio(dto.getPrecio());
         s.setDetalles(dto.getDetalles());
-        // 🚨 CORRECCIÓN 2: COPIAR EL CAMPO NUEVO DEL EDITOR PARA QUE EL SERVICE LO PUEDA GUARDAR
         s.setDescripcionCompleta(dto.getDescripcionCompleta());
         return s;
     }

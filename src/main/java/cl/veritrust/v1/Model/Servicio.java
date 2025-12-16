@@ -1,6 +1,6 @@
 package cl.veritrust.v1.Model;
 
-import jakarta.persistence.*; // Asegúrate de importar todo esto
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -24,11 +24,9 @@ public class Servicio {
     @Lob
     private String descripcionCompleta; 
 
-    
     private Integer precio;
 
-    // --- AQUI ESTA EL ARREGLO ---
-    @ElementCollection // <--- ESTO ES OBLIGATORIO PARA LISTAS
+    @ElementCollection
     @CollectionTable(name = "servicio_detalles", joinColumns = @JoinColumn(name = "servicio_id"))
     @Column(name = "detalle")
     private List<String> detalles;

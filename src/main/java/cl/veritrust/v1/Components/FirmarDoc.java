@@ -28,23 +28,14 @@ public class FirmarDoc {
     @Value("${app.libreoffice.path:soffice}")
     private String libreofficeCmd;
 
-    
-    /**
-     * Firma documento. Actualmente realiza únicamente una marca visual.
-     * El firmante efectivo es fijo como "VeriTrust" y no se aceptan modos.
-     * @param documento documento a firmar
-     * @return documento actualizado
-     */
     public Documento signDocumento(Documento documento) {
         try {
-            // si es DOCX convertir primero a PDF
             String tipo = documento.getTipoContenido();
             String stored = documento.getNombreAlmacenado();
             File sourceFile = fileStorageService.loadFileAsResource(stored).getFile();
 
             if (tipo != null && tipo.toLowerCase().contains("officedocument.wordprocessingml.document")) {
                 sourceFile = convertDocxToPdf(sourceFile);
-                // actualizar documento temporalmente para apuntar al PDF convertido
                 String pdfStoredName = storeConvertedPdf(sourceFile, documento);
                 documento.setNombreAlmacenado(pdfStoredName);
                 documento.setTipoContenido("application/pdf");
@@ -88,7 +79,6 @@ public class FirmarDoc {
     }
 
     private File convertDocxToPdf(File docxFile) throws IOException {
-        // usa libreoffice para convertir DOCX a PDF
         File outDir = fileStorageService.getUploadDir().toFile();
         ProcessBuilder pb = new ProcessBuilder(libreofficeCmd, "--headless", "--convert-to", "pdf", "--outdir", outDir.getAbsolutePath(), docxFile.getAbsolutePath());
         Process p = pb.start();
@@ -102,7 +92,6 @@ public class FirmarDoc {
             throw new IOException("Conversión interrumpida", e);
         }
 
-        // el mismo nombre pero con .pdf xD
         String name = docxFile.getName();
         int dot = name.lastIndexOf('.');
         String base = dot > 0 ? name.substring(0, dot) : name;
@@ -112,7 +101,6 @@ public class FirmarDoc {
     }
 
     private String storeConvertedPdf(File pdfFile, Documento documento) throws IOException {
-        // move/copy the converted pdf into uploadDir with unique prefix
         String newName = UUID.randomUUID().toString() + "_" + pdfFile.getName();
         Path target = fileStorageService.getUploadDir().resolve(newName);
         try (InputStream in = new FileInputStream(pdfFile); OutputStream out = new FileOutputStream(target.toFile())) {

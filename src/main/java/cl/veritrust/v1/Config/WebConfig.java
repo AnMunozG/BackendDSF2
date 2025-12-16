@@ -14,7 +14,6 @@ import java.util.List;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    // Configuración MVC tradicional
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
@@ -24,13 +23,12 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(true);
     }
 
-    // Configuración específica para que Spring Security no bloquee al Frontend
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:5173")); // Tu puerto de React
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
         config.setAllowedHeaders(Arrays.asList(
             "Origin", 
             "Content-Type", 
@@ -42,7 +40,7 @@ public class WebConfig implements WebMvcConfigurer {
         ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        config.setMaxAge(3600L); // Cache preflight por 1 hora
+        config.setMaxAge(3600L);
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
