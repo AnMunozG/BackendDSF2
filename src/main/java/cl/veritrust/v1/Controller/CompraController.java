@@ -12,6 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -22,6 +29,7 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/compras")
+@Tag(name = "Compras", description = "API para gestión de compras de servicios")
 public class CompraController {
 
 	@Autowired
@@ -30,19 +38,52 @@ public class CompraController {
 	@Autowired
 	private SecurityUtil securityUtil;
 
+	@Operation(
+		summary = "Obtener todas las compras",
+		description = "Retorna una lista con todas las compras registradas en el sistema"
+	)
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Lista de compras obtenida exitosamente"),
+		@ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+	})
+	@SecurityRequirement(name = "Bearer Authentication")
 	@GetMapping
 	public List<CompraDTO> getAll() {
 		return compraService.ObtenerCompras().stream().map(this::toDTO).collect(Collectors.toList());
 	}
 
+	@Operation(
+		summary = "Obtener compra por ID",
+		description = "Retorna la información de una compra específica mediante su ID"
+	)
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Compra encontrada"),
+		@ApiResponse(responseCode = "404", description = "Compra no encontrada"),
+		@ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+	})
+	@SecurityRequirement(name = "Bearer Authentication")
 	@GetMapping("/{id}")
-	public ResponseEntity<CompraDTO> getById(@PathVariable Long id) {
+	public ResponseEntity<CompraDTO> getById(
+			@Parameter(description = "ID de la compra a buscar", required = true)
+			@PathVariable Long id) {
 		Compra c = compraService.ObtenerCompraPorId(id);
 		return ResponseEntity.ok(toDTO(c));
 	}
 
+	@Operation(
+		summary = "Obtener compras por usuario",
+		description = "Retorna todas las compras realizadas por un usuario específico. El usuario autenticado solo puede ver sus propias compras."
+	)
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Lista de compras del usuario obtenida exitosamente"),
+		@ApiResponse(responseCode = "403", description = "No tienes permiso para acceder a las compras de otro usuario"),
+		@ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+	})
+	@SecurityRequirement(name = "Bearer Authentication")
 	@GetMapping("/usuario/{usuarioId}")
-	public ResponseEntity<?> getComprasPorUsuario(@PathVariable Long usuarioId) {
+	public ResponseEntity<?> getComprasPorUsuario(
+			@Parameter(description = "ID del usuario", required = true)
+			@PathVariable Long usuarioId) {
 		try {
 			// Validar que el usuario esté autenticado
 			Usuario usuarioAutenticado = securityUtil.getUsuarioAutenticado();
@@ -78,8 +119,21 @@ public class CompraController {
 		}
 	}
 
+	@Operation(
+		summary = "Crear nueva compra",
+		description = "Registra una nueva compra en el sistema. Acepta datos flexibles (string o número) para usuarioId, servicioId y monto."
+	)
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "201", description = "Compra creada exitosamente"),
+		@ApiResponse(responseCode = "400", description = "Datos de compra inválidos"),
+		@ApiResponse(responseCode = "500", description = "Error interno del servidor"),
+		@ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+	})
+	@SecurityRequirement(name = "Bearer Authentication")
 	@PostMapping
-	public ResponseEntity<?> create(@RequestBody Map<String, Object> rawData) {
+	public ResponseEntity<?> create(
+			@Parameter(description = "Datos de la compra (usuarioId, servicioId, monto opcional, fechaCompra opcional)", required = true)
+			@RequestBody Map<String, Object> rawData) {
 		try {
 			// Validar que el cuerpo no esté vacío
 			if (rawData == null || rawData.isEmpty()) {
@@ -199,15 +253,42 @@ public class CompraController {
 		return null; // Si no se puede parsear, retornar null y el servicio asignará la fecha actual
 	}
 
+	@Operation(
+		summary = "Actualizar compra",
+		description = "Actualiza la información de una compra existente"
+	)
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Compra actualizada exitosamente"),
+		@ApiResponse(responseCode = "404", description = "Compra no encontrada"),
+		@ApiResponse(responseCode = "400", description = "Datos inválidos"),
+		@ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+	})
+	@SecurityRequirement(name = "Bearer Authentication")
 	@PutMapping("/{id}")
-	public ResponseEntity<CompraDTO> update(@PathVariable Long id, @Valid @RequestBody CompraDTO dto) {
+	public ResponseEntity<CompraDTO> update(
+			@Parameter(description = "ID de la compra a actualizar", required = true)
+			@PathVariable Long id,
+			@Parameter(description = "Datos actualizados de la compra", required = true)
+			@Valid @RequestBody CompraDTO dto) {
 		Compra detalles = toEntity(dto);
 		Compra actualizado = compraService.ActualizarCompra(id, detalles);
 		return ResponseEntity.ok(toDTO(actualizado));
 	}
 
+	@Operation(
+		summary = "Eliminar compra",
+		description = "Elimina una compra del sistema mediante su ID"
+	)
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "204", description = "Compra eliminada exitosamente"),
+		@ApiResponse(responseCode = "404", description = "Compra no encontrada"),
+		@ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+	})
+	@SecurityRequirement(name = "Bearer Authentication")
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> delete(@PathVariable Long id) {
+	public ResponseEntity<Void> delete(
+			@Parameter(description = "ID de la compra a eliminar", required = true)
+			@PathVariable Long id) {
 		compraService.EliminarCompra(id);
 		return ResponseEntity.noContent().build();
 	}

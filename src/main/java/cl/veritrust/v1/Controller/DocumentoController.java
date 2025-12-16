@@ -19,6 +19,13 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
 import java.net.URI;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -31,6 +38,7 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/documento")
+@Tag(name = "Documentos", description = "API para gestión de documentos y firma digital")
 public class DocumentoController {
 
     @Autowired
@@ -47,9 +55,22 @@ public class DocumentoController {
     
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
+    @Operation(
+        summary = "Subir documento",
+        description = "Sube un documento (PDF o DOCX) al sistema y lo asocia a un usuario"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Documento subido exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Tipo de archivo no permitido o usuario no encontrado"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
     @PostMapping("/upload")
-    public ResponseEntity<DocumentoDTO> uploadFile(@RequestParam("file") MultipartFile file,
-                                                @RequestParam("userId") Long userId) {
+    public ResponseEntity<DocumentoDTO> uploadFile(
+            @Parameter(description = "Archivo a subir (PDF o DOCX)", required = true)
+            @RequestParam("file") MultipartFile file,
+            @Parameter(description = "ID del usuario propietario del documento", required = true)
+            @RequestParam("userId") Long userId) {
         String tipoContenido = file.getContentType();
         if (tipoContenido == null ||
                 !(tipoContenido.equals("application/pdf") || tipoContenido.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document"))) {
@@ -79,24 +100,63 @@ public class DocumentoController {
         return ResponseEntity.ok(toDTO(guardado));
     }
 
+    @Operation(
+        summary = "Crear documento",
+        description = "Crea un nuevo documento en el sistema mediante DTO"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Documento creado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos del documento inválidos"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
     @PostMapping
-    public ResponseEntity<DocumentoDTO> createDocumento(@Valid @RequestBody DocumentoDTO dto) {
+    public ResponseEntity<DocumentoDTO> createDocumento(
+            @Parameter(description = "Datos del documento a crear", required = true)
+            @Valid @RequestBody DocumentoDTO dto) {
         Documento d = toEntity(dto);
         Documento creado = documentoService.CrearDocumento(d);
         URI location = URI.create("/api/documentos/" + creado.getId());
         return ResponseEntity.created(location).body(toDTO(creado));
     }
 
+    @Operation(
+        summary = "Actualizar documento",
+        description = "Actualiza la información de un documento existente"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Documento actualizado exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Documento no encontrado"),
+        @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
     @PutMapping("/{id}")
-    public ResponseEntity<DocumentoDTO> updateDocumento(@PathVariable Long id, @Valid @RequestBody DocumentoDTO dto) {
+    public ResponseEntity<DocumentoDTO> updateDocumento(
+            @Parameter(description = "ID del documento a actualizar", required = true)
+            @PathVariable Long id,
+            @Parameter(description = "Datos actualizados del documento", required = true)
+            @Valid @RequestBody DocumentoDTO dto) {
         Documento detalles = toEntity(dto);
         Documento actualizado = documentoService.ActualizarDocumento(id, detalles);
         return ResponseEntity.ok(toDTO(actualizado));
     }
 
-    // MEJORA #3: Cambiamos el retorno a ResponseEntity<?> para poder enviar errores de texto si falla la validación
+    @Operation(
+        summary = "Firmar documento",
+        description = "Firma un documento existente. No permite refirmar documentos ya firmados."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Documento firmado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "El documento ya ha sido firmado previamente"),
+        @ApiResponse(responseCode = "404", description = "Documento no encontrado"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
     @PostMapping("/{id}/firmar")
-    public ResponseEntity<?> firmarDocumento(@PathVariable Long id) {
+    public ResponseEntity<?> firmarDocumento(
+            @Parameter(description = "ID del documento a firmar", required = true)
+            @PathVariable Long id) {
         Documento doc = documentoService.ObtenerDocumentoPorId(id);
         
         // --- INICIO MEJORA #3: PREVENIR REFIRMA ---
@@ -112,8 +172,20 @@ public class DocumentoController {
         return ResponseEntity.ok(toDTO(actualizado));
     }
 
+    @Operation(
+        summary = "Descargar documento",
+        description = "Descarga un documento del sistema mediante su ID"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Documento descargado exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Documento no encontrado"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
     @GetMapping("/{id}/download")
-    public ResponseEntity<Resource> downloadFile(@PathVariable Long id) {
+    public ResponseEntity<Resource> downloadFile(
+            @Parameter(description = "ID del documento a descargar", required = true)
+            @PathVariable Long id) {
         Documento doc = documentoService.ObtenerDocumentoPorId(id);
         Resource resource = fileStorageService.loadFileAsResource(doc.getNombreAlmacenado());
         String archivoCodificado = URLEncoder.encode(doc.getNombreOriginal(), StandardCharsets.UTF_8);
@@ -123,15 +195,38 @@ public class DocumentoController {
                 .body(resource);
     }
 
+    @Operation(
+        summary = "Listar documentos por usuario",
+        description = "Obtiene todos los documentos asociados a un usuario específico"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de documentos obtenida exitosamente"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<DocumentoDTO>> listByUser(@PathVariable Long userId) {
+    public ResponseEntity<List<DocumentoDTO>> listByUser(
+            @Parameter(description = "ID del usuario", required = true)
+            @PathVariable Long userId) {
         List<Documento> filtered = documentoService.ObtenerDocumentosPorUsuario(userId);
         List<DocumentoDTO> dtos = filtered.stream().map(this::toDTO).toList();
         return ResponseEntity.ok(dtos);
     }
 
+    @Operation(
+        summary = "Eliminar documento",
+        description = "Elimina un documento del sistema y sus archivos asociados (original y firmado si existen)"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Documento eliminado exitosamente"),
+        @ApiResponse(responseCode = "404", description = "Documento no encontrado"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDocumento(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteDocumento(
+            @Parameter(description = "ID del documento a eliminar", required = true)
+            @PathVariable Long id) {
         Documento doc = documentoService.ObtenerDocumentoPorId(id);
         
         // Borrar el archivo original (ya existía)
@@ -152,16 +247,28 @@ public class DocumentoController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * POST /api/documentos/firmado
-     * Guarda un documento firmado desde el frontend
-     */
+    @Operation(
+        summary = "Guardar documento firmado",
+        description = "Guarda un documento que ha sido firmado desde el frontend. Requiere autenticación y valida que el usuario tenga permisos."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Documento firmado guardado exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Datos inválidos (archivo, hash, nombre, fecha)"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
     @PostMapping("/firmado")
     public ResponseEntity<?> guardarDocumentoFirmado(
+            @Parameter(description = "Archivo PDF firmado", required = true)
             @RequestParam("archivo") MultipartFile archivo,
+            @Parameter(description = "Nombre original del archivo", required = true)
             @RequestParam("nombreOriginal") String nombreOriginal,
+            @Parameter(description = "Hash SHA-256 del documento (64 caracteres)", required = true)
             @RequestParam("hash") String hash,
+            @Parameter(description = "Fecha de firma en formato ISO 8601 (yyyy-MM-dd'T'HH:mm:ss)", required = true)
             @RequestParam("fechaFirma") String fechaFirmaStr,
+            @Parameter(description = "Tipo de archivo (por defecto: pdf)")
             @RequestParam(value = "tipoArchivo", required = false, defaultValue = "pdf") String tipoArchivo) {
         
         String rutaAlmacenamiento = null;
@@ -287,13 +394,21 @@ public class DocumentoController {
         }
     }
 
-    /**
-     * GET /api/documentos/firmados/usuario/{usuarioId} o GET /documentos/usuario/{usuarioId}
-     * Obtiene todos los documentos firmados de un usuario
-     * Compatible con ambas rutas para mantener compatibilidad con frontend
-     */
+    @Operation(
+        summary = "Obtener documentos firmados por usuario",
+        description = "Obtiene todos los documentos firmados de un usuario específico. El usuario autenticado solo puede ver sus propios documentos."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de documentos firmados obtenida exitosamente"),
+        @ApiResponse(responseCode = "403", description = "No tienes permiso para acceder a los documentos de otro usuario"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
     @GetMapping({"/firmados/usuario/{usuarioId}", "/usuario/{usuarioId}"})
-    public ResponseEntity<?> obtenerDocumentosFirmadosPorUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<?> obtenerDocumentosFirmadosPorUsuario(
+            @Parameter(description = "ID del usuario", required = true)
+            @PathVariable Long usuarioId) {
         try {
             // Validar autenticación
             Usuario usuarioAutenticado = securityUtil.getUsuarioAutenticado();
@@ -323,12 +438,22 @@ public class DocumentoController {
         }
     }
 
-    /**
-     * GET /api/documentos/{documentoId}/download-firmado
-     * Descarga un documento firmado
-     */
+    @Operation(
+        summary = "Descargar documento firmado",
+        description = "Descarga un documento que ha sido firmado. El usuario solo puede descargar sus propios documentos."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Documento firmado descargado exitosamente"),
+        @ApiResponse(responseCode = "403", description = "No tienes permiso para descargar este documento"),
+        @ApiResponse(responseCode = "404", description = "Documento no encontrado"),
+        @ApiResponse(responseCode = "401", description = "No autorizado - Token JWT inválido o faltante"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
     @GetMapping("/{documentoId}/download-firmado")
-    public ResponseEntity<?> descargarDocumentoFirmado(@PathVariable Long documentoId) {
+    public ResponseEntity<?> descargarDocumentoFirmado(
+            @Parameter(description = "ID del documento firmado a descargar", required = true)
+            @PathVariable Long documentoId) {
         try {
             // Validar autenticación
             Usuario usuarioAutenticado = securityUtil.getUsuarioAutenticado();
