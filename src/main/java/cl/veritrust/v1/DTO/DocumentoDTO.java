@@ -17,7 +17,6 @@ public class DocumentoDTO {
     private String tipoContenido;
 
     @NotNull(message = "El tamaño no puede ser nulo")
-    @Min(value = 1, message = "El archivo debe tener un tamaño mayor a 0 bytes")
     private Long tamano;
 
     @NotNull(message = "La fecha de subida no puede ser nula")

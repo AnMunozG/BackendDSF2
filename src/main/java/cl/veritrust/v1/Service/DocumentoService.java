@@ -45,6 +45,10 @@ public class DocumentoService {
         if (detallesDocumento.getTamano() != null) documento.setTamano(detallesDocumento.getTamano());
         if (detallesDocumento.getNombreFirmado() != null) documento.setNombreFirmado(detallesDocumento.getNombreFirmado());
         documento.setFirmado(detallesDocumento.isFirmado());
+        // Actualizar campos de documento firmado si están presentes
+        if (detallesDocumento.getHashDocumento() != null) documento.setHashDocumento(detallesDocumento.getHashDocumento());
+        if (detallesDocumento.getFechaFirma() != null) documento.setFechaFirma(detallesDocumento.getFechaFirma());
+        if (detallesDocumento.getRutaAlmacenamiento() != null) documento.setRutaAlmacenamiento(detallesDocumento.getRutaAlmacenamiento());
         // permitir actualizar el usuario asociado mediante detallesDocumento.usuario.id
         if (detallesDocumento.getUsuario() != null && detallesDocumento.getUsuario().getId() != null) {
             Usuario u = usuarioService.ObtenerUsuarioPorId(detallesDocumento.getUsuario().getId());
@@ -53,9 +57,47 @@ public class DocumentoService {
         return documentoRepository.save(documento);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public Documento CrearDocumentoFirmado(Documento documento) {
+        // Validar que todos los campos requeridos estén presentes
+        if (documento.getUsuario() == null || documento.getUsuario().getId() == null) {
+            throw new IllegalArgumentException("El usuario es requerido");
+        }
+        if (documento.getNombreAlmacenado() == null || documento.getNombreAlmacenado().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del archivo es requerido");
+        }
+        if (documento.getNombreOriginal() == null || documento.getNombreOriginal().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre original del archivo es requerido");
+        }
+        if (documento.getHashDocumento() == null || documento.getHashDocumento().trim().isEmpty()) {
+            throw new IllegalArgumentException("El hash del documento es requerido");
+        }
+        if (documento.getFechaFirma() == null) {
+            throw new IllegalArgumentException("La fecha de firma es requerida");
+        }
+        if (documento.getRutaAlmacenamiento() == null || documento.getRutaAlmacenamiento().trim().isEmpty()) {
+            throw new IllegalArgumentException("La ruta de almacenamiento es requerida");
+        }
+        
+        // Resolver la relación con Usuario si solo viene el ID
+        if (documento.getUsuario().getId() != null) {
+            Usuario usuario = usuarioService.ObtenerUsuarioPorId(documento.getUsuario().getId());
+            documento.setUsuario(usuario);
+        }
+        
+        documento.setFirmado(true);
+        System.out.println("Guardando documento firmado en BD: " + documento.getNombreAlmacenado());
+        return documentoRepository.save(documento);
+    }
+
     @Transactional(readOnly = true)
     public List<Documento> ObtenerDocumentosPorUsuario(Long usuarioId) {
         return documentoRepository.findByUsuario_Id(usuarioId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Documento> ObtenerDocumentosFirmadosPorUsuario(Long usuarioId) {
+        return documentoRepository.findByUsuario_IdAndFirmadoTrueOrderByFechaFirmaDesc(usuarioId);
     }
 
     public void EliminarDocumento(Long id) {

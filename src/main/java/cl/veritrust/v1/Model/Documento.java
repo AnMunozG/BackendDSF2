@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "documento")
 public class Documento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,6 +35,16 @@ public class Documento {
     private boolean firmado = false;
 
     private String nombreFirmado;
+
+    // Campos adicionales para documentos firmados desde el frontend
+    @Column(name = "hash_documento", length = 64)
+    private String hashDocumento;
+
+    @Column(name = "fecha_firma")
+    private LocalDateTime fechaFirma;
+
+    @Column(name = "ruta_almacenamiento", length = 500)
+    private String rutaAlmacenamiento;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)
