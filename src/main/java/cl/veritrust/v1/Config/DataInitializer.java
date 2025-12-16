@@ -61,19 +61,19 @@ public class DataInitializer implements CommandLineRunner {
         usuarioRepository.save(admin);
 
         Usuario cliente1 = new Usuario();
-        cliente1.setRut("125732143");
-        cliente1.setNombre("Juan Pérez");
-        cliente1.setTelefono("+56987654321");
-        cliente1.setEmail("juan.perez@email.com");
+        cliente1.setRut("218676987");
+        cliente1.setNombre("Angel Muñoz");
+        cliente1.setTelefono("+56937354958");
+        cliente1.setEmail("angel.munoz@test.cl");
         cliente1.setFechaNac(LocalDate.of(1985, 5, 20));
-        cliente1.setContraseña(passwordEncoder.encode("dilan123"));
+        cliente1.setContraseña(passwordEncoder.encode("angel123"));
         cliente1.setRol("user");
-        cliente1.setRegion("Región de Valparaíso");
-        cliente1.setComuna("Valparaíso");
+        cliente1.setRegion("Región Metropolitana");
+        cliente1.setComuna("Santiago");
         usuarioRepository.save(cliente1);
 
         Usuario cliente2 = new Usuario();
-        cliente2.setRut("22222222-2");
+        cliente2.setRut("222222222");
         cliente2.setNombre("María González");
         cliente2.setTelefono("+56976543210");
         cliente2.setEmail("maria.gonzalez@email.com");
@@ -85,7 +85,7 @@ public class DataInitializer implements CommandLineRunner {
         usuarioRepository.save(cliente2);
 
         Usuario cliente3 = new Usuario();
-        cliente3.setRut("33333333-3");
+        cliente3.setRut("333333333");
         cliente3.setNombre("Carlos Rodríguez");
         cliente3.setTelefono("+56965432109");
         cliente3.setEmail("carlos.rodriguez@email.com");
